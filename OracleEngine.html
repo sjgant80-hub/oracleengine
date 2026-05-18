@@ -1,0 +1,857 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>OracleEngine · ◊ The Mirror That Looks Forward</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --void: #050507;
+  --surface: #0a0b10;
+  --surface-2: #0e0f17;
+  --surface-3: #131420;
+  --border: #1a1b28;
+  --border-lit: #252738;
+  --text: #a8a4be;
+  --dim: #56536a;
+  --bright: #e8e4ff;
+  --accent: #8b6ce7;
+  --accent-dim: rgba(139,108,231,0.12);
+  --gold: #d4a853;
+  --gold-dim: rgba(212,168,83,0.10);
+  --green: #4ecba0;
+  --green-dim: rgba(78,203,160,0.08);
+  --red: #e05555;
+  --red-dim: rgba(224,85,85,0.08);
+  --cyan: #5bb8d4;
+  --serif: 'Cormorant Garamond', Georgia, serif;
+  --mono: 'DM Mono', monospace;
+}
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
+html{-webkit-font-smoothing:antialiased;}
+body{font-family:var(--serif);background:var(--void);color:var(--text);min-height:100vh;overflow-x:hidden;}
+::selection{background:var(--accent);color:var(--void);}
+body::after{content:'';position:fixed;inset:0;z-index:9999;pointer-events:none;opacity:0.02;background:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");background-size:180px;}
+
+.app{max-width:900px;margin:0 auto;padding:24px 20px;}
+
+/* header */
+.header{text-align:center;padding:60px 0 40px;position:relative;}
+.header::before{content:'◊';position:absolute;top:20px;left:50%;transform:translateX(-50%);font-size:14px;color:var(--accent);opacity:.4;font-family:var(--mono);}
+.header h1{font-family:var(--serif);font-size:clamp(28px,5vw,42px);font-weight:700;color:var(--bright);letter-spacing:-.02em;margin-bottom:8px;}
+.header h1 em{font-style:italic;color:var(--gold);}
+.header p{font-size:15px;color:var(--dim);font-family:var(--mono);letter-spacing:.02em;}
+
+/* mode tabs */
+.modes{display:flex;justify-content:center;gap:4px;margin:32px 0;background:var(--surface);border-radius:10px;padding:4px;border:1px solid var(--border);}
+.mode-btn{padding:10px 24px;border:none;background:transparent;color:var(--dim);font-family:var(--mono);font-size:12px;cursor:pointer;border-radius:7px;transition:all .2s;letter-spacing:.04em;}
+.mode-btn.active{background:var(--accent-dim);color:var(--accent);font-weight:500;}
+.mode-btn:hover:not(.active){color:var(--text);}
+
+/* input panel */
+.input-panel{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:28px;margin-bottom:24px;position:relative;overflow:hidden;}
+.input-panel::before{content:'';position:absolute;top:0;right:0;width:300px;height:300px;background:radial-gradient(circle,var(--accent-dim),transparent);pointer-events:none;}
+.input-label{font-family:var(--mono);font-size:10px;color:var(--dim);letter-spacing:.1em;text-transform:uppercase;margin-bottom:10px;display:block;}
+.input-area{width:100%;min-height:140px;background:var(--void);border:1px solid var(--border);border-radius:10px;padding:16px;color:var(--text);font-family:var(--serif);font-size:15px;line-height:1.7;resize:vertical;transition:border-color .3s;}
+.input-area:focus{outline:none;border-color:var(--accent);}
+.input-area::placeholder{color:var(--dim);opacity:.5;font-style:italic;}
+.input-row{display:flex;gap:10px;margin-top:14px;align-items:center;flex-wrap:wrap;}
+.domain-select{padding:9px 14px;background:var(--void);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:var(--mono);font-size:12px;cursor:pointer;appearance:none;-webkit-appearance:none;background-image:url("data:image/svg+xml,%3Csvg width='10' height='6' viewBox='0 0 10 6' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%2356536a' fill='none'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 10px center;padding-right:28px;}
+.analyse-btn{padding:11px 28px;background:var(--accent);border:none;border-radius:9px;color:#fff;font-family:var(--mono);font-size:13px;font-weight:500;cursor:pointer;letter-spacing:.02em;transition:all .2s;}
+.analyse-btn:hover{background:#7a5bd6;transform:translateY(-1px);}
+.analyse-btn:disabled{opacity:.4;cursor:not-allowed;transform:none;}
+.mode-hint{font-family:var(--mono);font-size:10px;color:var(--dim);margin-left:auto;}
+
+/* history sidebar */
+.history-toggle{position:fixed;top:20px;right:20px;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:8px 12px;font-family:var(--mono);font-size:10px;color:var(--dim);cursor:pointer;z-index:50;}
+
+/* results */
+.results{display:none;}
+.results.visible{display:block;}
+.result-section{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:24px;margin-bottom:16px;position:relative;}
+.result-section::before{content:attr(data-agent);position:absolute;top:-1px;right:16px;font-family:var(--mono);font-size:9px;color:var(--dim);background:var(--void);padding:2px 8px;border-radius:0 0 4px 4px;letter-spacing:.06em;}
+
+/* bloom vector display */
+.bloom-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;margin:16px 0;}
+.bloom-ring{text-align:center;}
+.bloom-bar-wrap{height:80px;background:var(--void);border-radius:4px;position:relative;overflow:hidden;margin-bottom:4px;}
+.bloom-bar{position:absolute;bottom:0;left:0;right:0;border-radius:4px 4px 0 0;transition:height 1s cubic-bezier(.16,1,.3,1);}
+.bloom-label{font-family:var(--mono);font-size:9px;color:var(--dim);}
+.bloom-val{font-family:var(--mono);font-size:10px;color:var(--bright);margin-top:2px;}
+
+/* torus canvas */
+.torus-wrap{position:relative;height:280px;margin:20px 0;border-radius:10px;overflow:hidden;background:var(--void);border:1px solid var(--border);}
+.torus-canvas{width:100%;height:100%;}
+.torus-label{position:absolute;bottom:8px;left:12px;font-family:var(--mono);font-size:9px;color:var(--dim);}
+
+/* prediction cards */
+.pred-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px;margin:16px 0;}
+.pred-card{background:var(--void);border:1px solid var(--border);border-radius:10px;padding:16px;transition:border-color .3s;}
+.pred-card:hover{border-color:var(--border-lit);}
+.pred-category{font-family:var(--mono);font-size:10px;letter-spacing:.06em;text-transform:uppercase;margin-bottom:6px;}
+.pred-pct{font-size:28px;font-weight:700;color:var(--bright);font-family:var(--serif);}
+.pred-bar{height:3px;background:var(--border);border-radius:2px;margin-top:8px;overflow:hidden;}
+.pred-fill{height:100%;border-radius:2px;transition:width 1s cubic-bezier(.16,1,.3,1);}
+
+/* confidence meter */
+.confidence{display:flex;align-items:center;gap:10px;padding:14px;background:var(--void);border-radius:8px;margin:12px 0;}
+.conf-label{font-family:var(--mono);font-size:10px;color:var(--dim);}
+.conf-track{flex:1;height:6px;background:var(--border);border-radius:3px;overflow:hidden;}
+.conf-fill{height:100%;border-radius:3px;transition:width 1s cubic-bezier(.16,1,.3,1);}
+.conf-val{font-family:var(--mono);font-size:12px;color:var(--bright);min-width:32px;text-align:right;}
+
+/* methodology */
+.methodology{background:var(--void);border:1px solid var(--border);border-radius:10px;padding:16px;margin-top:16px;}
+.meth-toggle{font-family:var(--mono);font-size:11px;color:var(--dim);cursor:pointer;display:flex;align-items:center;gap:6px;}
+.meth-content{display:none;margin-top:12px;font-size:13px;line-height:1.7;color:var(--dim);}
+.meth-content.open{display:block;}
+
+/* flags/gates */
+.flag{padding:10px 14px;border-radius:8px;font-family:var(--mono);font-size:11px;margin:6px 0;display:flex;align-items:flex-start;gap:8px;line-height:1.5;}
+.flag-warn{background:var(--gold-dim);color:var(--gold);border:1px solid rgba(212,168,83,0.15);}
+.flag-danger{background:var(--red-dim);color:var(--red);border:1px solid rgba(224,85,85,0.15);}
+.flag-info{background:var(--accent-dim);color:var(--accent);border:1px solid rgba(139,108,231,0.15);}
+.flag-pass{background:var(--green-dim);color:var(--green);border:1px solid rgba(78,203,160,0.15);}
+
+/* AI response prose */
+.ai-prose{font-size:15px;line-height:1.8;color:var(--text);white-space:pre-wrap;}
+.ai-prose strong{color:var(--bright);}
+
+/* key settings */
+.settings{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:20px;margin-bottom:24px;display:none;}
+.settings.visible{display:block;}
+.settings h3{font-family:var(--mono);font-size:11px;color:var(--dim);letter-spacing:.08em;text-transform:uppercase;margin-bottom:12px;}
+.key-row{display:flex;gap:8px;margin-bottom:8px;align-items:center;}
+.key-label{font-family:var(--mono);font-size:10px;color:var(--dim);min-width:80px;}
+.key-input{flex:1;padding:8px 12px;background:var(--void);border:1px solid var(--border);border-radius:6px;color:var(--text);font-family:var(--mono);font-size:11px;}
+.key-status{width:8px;height:8px;border-radius:50%;background:var(--dim);}
+.key-status.live{background:var(--green);}
+.save-keys-btn{padding:8px 16px;background:var(--accent);border:none;border-radius:6px;color:#fff;font-family:var(--mono);font-size:11px;cursor:pointer;margin-top:8px;}
+
+/* footer */
+.footer{text-align:center;padding:40px 0;border-top:1px solid var(--border);margin-top:40px;}
+.footer p{font-family:var(--mono);font-size:10px;color:var(--dim);line-height:2;}
+
+/* loading */
+.loading{text-align:center;padding:40px;}
+.loading p{font-family:var(--mono);font-size:12px;color:var(--accent);}
+.loading .agent-trace{margin-top:12px;font-size:10px;color:var(--dim);}
+
+@media(max-width:600px){
+  .bloom-grid{grid-template-columns:repeat(4,1fr);}
+  .pred-grid{grid-template-columns:1fr;}
+  .modes{flex-wrap:wrap;}
+}
+</style>
+</head>
+<body>
+
+<div class="app">
+
+<div class="header">
+  <h1>Oracle<em>Engine</em></h1>
+  <p>probability not prophecy · ◊·κ=1</p>
+</div>
+
+<!-- MODE SELECTOR -->
+<div class="modes">
+  <button class="mode-btn active" data-mode="postcog" onclick="setMode('postcog')">POST-COG</button>
+  <button class="mode-btn" data-mode="live" onclick="setMode('live')">LIVE</button>
+  <button class="mode-btn" data-mode="precog" onclick="setMode('precog')">PRE-COG</button>
+  <button class="mode-btn" data-mode="cochno" onclick="setMode('cochno')">COCHNO</button>
+</div>
+
+<!-- SETTINGS (API keys) -->
+<div class="settings" id="settings">
+  <h3>Provider Keys (stored locally only)</h3>
+  <div class="key-row"><span class="key-label">Gemini</span><input type="password" class="key-input" id="key-gemini" placeholder="Free tier — paste key"><div class="key-status" id="status-gemini"></div></div>
+  <div class="key-row"><span class="key-label">DeepSeek</span><input type="password" class="key-input" id="key-deepseek" placeholder="Free tier"><div class="key-status" id="status-deepseek"></div></div>
+  <div class="key-row"><span class="key-label">Anthropic</span><input type="password" class="key-input" id="key-anthropic" placeholder="Paid fallback"><div class="key-status" id="status-anthropic"></div></div>
+  <button class="save-keys-btn" onclick="saveKeys()">Save keys</button>
+  <p style="font-family:var(--mono);font-size:9px;color:var(--dim);margin-top:8px;">Keys never leave your browser. Direct API calls from your tab. Sovereign.</p>
+</div>
+
+<!-- INPUT PANEL -->
+<div class="input-panel">
+  <label class="input-label" id="input-label">Post-cog · describe a situation that already happened</label>
+  <textarea class="input-area" id="inputText" placeholder="Describe a business situation, market event, personal decision, or any scenario you want to analyse...
+
+Example: 'In Q3 2024, a SaaS startup with 50 employees had strong product-market fit signals (NPS 72, 140% net retention) but was burning $400K/month with 8 months of runway. The CEO was publicly optimistic about Series B while privately cutting the marketing team. Two board members had gone quiet.'"></textarea>
+  <div class="input-row">
+    <select class="domain-select" id="domain">
+      <option value="business">Business</option>
+      <option value="market">Markets</option>
+      <option value="personal">Personal</option>
+      <option value="health">Health</option>
+      <option value="relationship">Relationship</option>
+      <option value="geopolitical">Geopolitical</option>
+    </select>
+    <button class="analyse-btn" id="analyseBtn" onclick="runOracle()">Analyse ◊</button>
+    <span class="mode-hint" id="modeHint">← what happened and why</span>
+    <button style="padding:8px 12px;background:transparent;border:1px solid var(--border);border-radius:6px;color:var(--dim);font-family:var(--mono);font-size:10px;cursor:pointer;" onclick="toggleSettings()">⚙</button>
+  </div>
+</div>
+
+<!-- RESULTS -->
+<div class="results" id="results">
+
+  <!-- BLOOM VECTOR -->
+  <div class="result-section" data-agent="β VECTORISER">
+    <span class="input-label">Bloom Vector — 7 Ring Activation</span>
+    <div class="bloom-grid" id="bloomGrid"></div>
+    <div style="display:flex;gap:12px;margin-top:8px;">
+      <span style="font-family:var(--mono);font-size:9px;color:var(--dim);">Ψ phase: <span id="psiVal" style="color:var(--accent);">—</span></span>
+      <span style="font-family:var(--mono);font-size:9px;color:var(--dim);">θ position: <span id="thetaVal" style="color:var(--gold);">—</span></span>
+      <span style="font-family:var(--mono);font-size:9px;color:var(--dim);">Signature: <span id="sigVal" style="color:var(--bright);">—</span></span>
+    </div>
+  </div>
+
+  <!-- TORUS POSITION -->
+  <div class="result-section" data-agent="δ TRAJECTORY">
+    <span class="input-label">Torus Position</span>
+    <div class="torus-wrap">
+      <canvas class="torus-canvas" id="torusCanvas"></canvas>
+      <span class="torus-label">θ/Ψ · mod 510510</span>
+    </div>
+  </div>
+
+  <!-- GATE FLAGS -->
+  <div id="gateFlags"></div>
+
+  <!-- AI ANALYSIS -->
+  <div class="result-section" data-agent="Ω ORCHESTRATOR">
+    <span class="input-label" id="analysisLabel">Analysis</span>
+    <div class="ai-prose" id="aiAnalysis"></div>
+  </div>
+
+  <!-- PREDICTIONS -->
+  <div class="result-section" data-agent="η SCORER">
+    <span class="input-label">Outcome Probability Distribution</span>
+    <div class="pred-grid" id="predGrid"></div>
+    <div class="confidence" id="confMeter">
+      <span class="conf-label">Confidence</span>
+      <div class="conf-track"><div class="conf-fill" id="confFill" style="width:0;background:var(--accent);"></div></div>
+      <span class="conf-val" id="confVal">—</span>
+    </div>
+  </div>
+
+  <!-- METHODOLOGY -->
+  <div class="result-section" data-agent="ε GATE + ζ AUDIT">
+    <div class="methodology">
+      <div class="meth-toggle" onclick="this.nextElementSibling.classList.toggle('open')">▸ How this was calculated (always visible)</div>
+      <div class="meth-content" id="methContent"></div>
+    </div>
+  </div>
+
+</div>
+
+<!-- COCHNO RESULTS -->
+<div id="cochnoResults" style="display:none">
+<div class="result-section" data-agent="κ COCHNO">
+  <div style="text-align:center;margin-bottom:16px">
+    <svg id="cochnoSvg" width="360" height="360" viewBox="0 0 360 360" style="margin:0 auto;display:block"></svg>
+  </div>
+  <div id="cochnoRings" style="margin-top:16px"></div>
+  <div id="cochnoGrooves" style="margin-top:12px"></div>
+  <div id="cochnoInsight" style="margin-top:12px;font-family:var(--serif);font-size:15px;line-height:1.8;color:var(--bright);text-align:center;font-style:italic"></div>
+</div>
+</div>
+
+<!-- LOADING -->
+<div class="loading" id="loading" style="display:none;">
+  <p>◊ Running 8+1 agents...</p>
+  <div class="agent-trace" id="agentTrace">α scaffold → parsing input</div>
+</div>
+
+<!-- FOOTER -->
+<div class="footer">
+  <p>OracleEngine · Probability Not Prophecy · Sovereign Pattern Recognition</p>
+  <p>8+1 agents · bloom vectorisation · toroidal mapping · Cochno projection · ◊·κ=1</p>
+  <p>Built by AI Native Solutions · Konomi Architecture · 510,510</p>
+</div>
+
+</div>
+
+<script>
+// ═══ STATE ═══
+let currentMode = 'postcog';
+let analysisHistory = [];
+const PHI = 1.618033988749895;
+const KAPPA = 0.618033988749895;
+const FOLD = 510510;
+const PRIMES = [2, 3, 5, 7, 11, 13, 17];
+const RING_NAMES = ['R0·Ground', 'R1·Signal', 'R2·Gate', 'R3·Heart', 'R4·Voice', 'R5·Mirror', 'R6·Watcher'];
+const RING_COLORS = ['#5bb8d4', '#4ecba0', '#e05555', '#d4a853', '#8b6ce7', '#e05555', '#5bb8d4'];
+const OUTCOMES = ['growth', 'decline', 'pivot', 'crisis', 'stability', 'breakthrough'];
+const OUTCOME_COLORS = { growth:'var(--green)', decline:'var(--red)', pivot:'var(--gold)', crisis:'var(--red)', stability:'var(--cyan)', breakthrough:'var(--accent)' };
+
+// ═══ MODE MANAGEMENT ═══
+function setMode(mode) {
+  currentMode = mode;
+  document.querySelectorAll('.mode-btn').forEach(b => b.classList.toggle('active', b.dataset.mode === mode));
+  const labels = { postcog: 'Post-cog · describe a situation that already happened', live: 'Live · describe a current situation', precog: 'Pre-cog · describe current state + momentum for projection', cochno: 'Cochno · describe your current state for torus mapping' };
+  const hints = { postcog: '← what happened and why', live: '← where you are now', precog: '← where this is heading', cochno: '← map past/present/future rings' };
+  document.getElementById('input-label').textContent = labels[mode];
+  document.getElementById('modeHint').textContent = hints[mode];
+  // Show/hide cochno results
+  const cochnoEl = document.getElementById('cochnoResults');
+  if (cochnoEl) cochnoEl.style.display = mode === 'cochno' ? 'block' : 'none';
+}
+
+// ═══ SETTINGS ═══
+function toggleSettings() { document.getElementById('settings').classList.toggle('visible'); }
+function saveKeys() {
+  ['gemini','deepseek','anthropic'].forEach(p => {
+    const v = document.getElementById('key-' + p).value.trim();
+    if (v) { localStorage.setItem('oracle_key_' + p, v); document.getElementById('status-' + p).classList.add('live'); }
+  });
+}
+function loadKeys() {
+  ['gemini','deepseek','anthropic'].forEach(p => {
+    const v = localStorage.getItem('oracle_key_' + p);
+    if (v) { document.getElementById('key-' + p).value = v; document.getElementById('status-' + p).classList.add('live'); }
+  });
+}
+
+// ═══ BLOOM VECTORISER (β agent) ═══
+function computeBloomVector(rings) {
+  const sig = PRIMES.reduce((acc, p, i) => acc * Math.pow(p, Math.round(rings[i] / 10)), 1);
+  const theta = (sig % FOLD) / FOLD;
+  const psi = ((sig * KAPPA) % FOLD) / FOLD;
+  return { rings, signature: sig, theta, psi };
+}
+
+// ═══ TORUS RENDERER (θ agent) ═══
+function renderTorus(canvas, theta, psi, matches) {
+  const ctx = canvas.getContext('2d');
+  const w = canvas.width = canvas.parentElement.clientWidth;
+  const h = canvas.height = canvas.parentElement.clientHeight;
+  const cx = w / 2, cy = h / 2;
+  const R = Math.min(w, h) * 0.3;
+  const r = R * 0.38;
+
+  ctx.fillStyle = '#050507';
+  ctx.fillRect(0, 0, w, h);
+
+  // draw torus wireframe
+  ctx.strokeStyle = 'rgba(139,108,231,0.06)';
+  ctx.lineWidth = 0.5;
+  for (let i = 0; i < 48; i++) {
+    const a = (i / 48) * Math.PI * 2;
+    ctx.beginPath();
+    for (let j = 0; j <= 32; j++) {
+      const b = (j / 32) * Math.PI * 2;
+      const x = cx + (R + r * Math.cos(b)) * Math.cos(a);
+      const y = cy + (R + r * Math.cos(b)) * Math.sin(a) * 0.4 + r * Math.sin(b) * 0.9;
+      j === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+    }
+    ctx.stroke();
+  }
+  for (let j = 0; j < 24; j++) {
+    const b = (j / 24) * Math.PI * 2;
+    ctx.beginPath();
+    for (let i = 0; i <= 48; i++) {
+      const a = (i / 48) * Math.PI * 2;
+      const x = cx + (R + r * Math.cos(b)) * Math.cos(a);
+      const y = cy + (R + r * Math.cos(b)) * Math.sin(a) * 0.4 + r * Math.sin(b) * 0.9;
+      i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+    }
+    ctx.stroke();
+  }
+
+  // plot matches as dim dots
+  if (matches) {
+    matches.forEach(m => {
+      const a = m.theta * Math.PI * 2;
+      const b = m.psi * Math.PI * 2;
+      const x = cx + (R + r * Math.cos(b)) * Math.cos(a);
+      const y = cy + (R + r * Math.cos(b)) * Math.sin(a) * 0.4 + r * Math.sin(b) * 0.9;
+      ctx.beginPath();
+      ctx.arc(x, y, 3, 0, Math.PI * 2);
+      ctx.fillStyle = 'rgba(212,168,83,0.4)';
+      ctx.fill();
+    });
+  }
+
+  // plot current position
+  const a = theta * Math.PI * 2;
+  const b = psi * Math.PI * 2;
+  const px = cx + (R + r * Math.cos(b)) * Math.cos(a);
+  const py = cy + (R + r * Math.cos(b)) * Math.sin(a) * 0.4 + r * Math.sin(b) * 0.9;
+  
+  // glow
+  const grd = ctx.createRadialGradient(px, py, 0, px, py, 20);
+  grd.addColorStop(0, 'rgba(139,108,231,0.6)');
+  grd.addColorStop(1, 'transparent');
+  ctx.fillStyle = grd;
+  ctx.fillRect(px - 20, py - 20, 40, 40);
+  
+  // dot
+  ctx.beginPath();
+  ctx.arc(px, py, 5, 0, Math.PI * 2);
+  ctx.fillStyle = '#8b6ce7';
+  ctx.fill();
+  ctx.strokeStyle = '#fff';
+  ctx.lineWidth = 1.5;
+  ctx.stroke();
+
+  // labels
+  ctx.font = '9px "DM Mono"';
+  ctx.fillStyle = '#56536a';
+  ctx.fillText('θ=' + theta.toFixed(4), px + 10, py - 6);
+  ctx.fillText('Ψ=' + psi.toFixed(4), px + 10, py + 8);
+}
+
+// ═══ BLOOM DISPLAY ═══
+function renderBloom(rings) {
+  const grid = document.getElementById('bloomGrid');
+  grid.innerHTML = '';
+  rings.forEach((val, i) => {
+    const ring = document.createElement('div');
+    ring.className = 'bloom-ring';
+    ring.innerHTML = `
+      <div class="bloom-bar-wrap"><div class="bloom-bar" style="height:0%;background:${RING_COLORS[i]};"></div></div>
+      <div class="bloom-label">${RING_NAMES[i].split('·')[0]}</div>
+      <div class="bloom-val">${val}</div>
+    `;
+    grid.appendChild(ring);
+    setTimeout(() => { ring.querySelector('.bloom-bar').style.height = val + '%'; }, 50 + i * 80);
+  });
+}
+
+// ═══ PREDICTION DISPLAY ═══
+function renderPredictions(probs) {
+  const grid = document.getElementById('predGrid');
+  grid.innerHTML = '';
+  OUTCOMES.forEach(cat => {
+    const pct = probs[cat] || 0;
+    const card = document.createElement('div');
+    card.className = 'pred-card';
+    card.innerHTML = `
+      <div class="pred-category" style="color:${OUTCOME_COLORS[cat]}">${cat}</div>
+      <div class="pred-pct">${Math.round(pct)}%</div>
+      <div class="pred-bar"><div class="pred-fill" style="width:0%;background:${OUTCOME_COLORS[cat]}"></div></div>
+    `;
+    grid.appendChild(card);
+    setTimeout(() => { card.querySelector('.pred-fill').style.width = pct + '%'; }, 200);
+  });
+}
+
+// ═══ GATE FLAGS (ε agent) ═══
+function renderFlags(flags) {
+  const el = document.getElementById('gateFlags');
+  el.innerHTML = '';
+  flags.forEach(f => {
+    const flag = document.createElement('div');
+    flag.className = 'flag flag-' + f.type;
+    flag.innerHTML = `<span>${f.type === 'warn' ? '⚠' : f.type === 'danger' ? '⛔' : f.type === 'pass' ? '✓' : 'ℹ'}</span><span>${f.text}</span>`;
+    el.appendChild(flag);
+  });
+}
+
+// ═══ MULTI-PROVIDER AI ROUTER ═══
+async function callAI(systemPrompt, userPrompt) {
+  const backends = [
+    { name: 'gemini', key: localStorage.getItem('oracle_key_gemini'), format: 'gemini',
+      url: 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent' },
+    { name: 'deepseek', key: localStorage.getItem('oracle_key_deepseek'), format: 'openai',
+      url: 'https://api.deepseek.com/v1/chat/completions', model: 'deepseek-chat' },
+    { name: 'anthropic', key: localStorage.getItem('oracle_key_anthropic'), format: 'anthropic',
+      url: 'https://api.anthropic.com/v1/messages', model: 'claude-sonnet-4-20250514' }
+  ];
+
+  for (const b of backends) {
+    if (!b.key) continue;
+    try {
+      let result;
+      if (b.format === 'gemini') {
+        const r = await fetch(b.url + '?key=' + b.key, { method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ contents: [{ parts: [{ text: systemPrompt + '\n\n' + userPrompt }] }], generationConfig: { temperature: 0.3 } }) });
+        const d = await r.json();
+        result = d.candidates?.[0]?.content?.parts?.[0]?.text;
+      } else if (b.format === 'openai') {
+        const r = await fetch(b.url, { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + b.key },
+          body: JSON.stringify({ model: b.model, messages: [{ role: 'system', content: systemPrompt }, { role: 'user', content: userPrompt }], temperature: 0.3 }) });
+        const d = await r.json();
+        result = d.choices?.[0]?.message?.content;
+      } else if (b.format === 'anthropic') {
+        const r = await fetch(b.url, { method: 'POST', headers: { 'Content-Type': 'application/json', 'x-api-key': b.key, 'anthropic-version': '2023-06-01', 'anthropic-dangerous-direct-browser-access': 'true' },
+          body: JSON.stringify({ model: b.model, max_tokens: 4000, system: systemPrompt, messages: [{ role: 'user', content: userPrompt }] }) });
+        const d = await r.json();
+        result = d.content?.filter(c => c.type === 'text').map(c => c.text).join('\n');
+      }
+      if (result) return { text: result, provider: b.name };
+    } catch (e) { console.warn(b.name + ' failed:', e.message); }
+  }
+  return null;
+}
+
+// ═══ MAIN ORACLE FUNCTION ═══
+async function runOracle() {
+  const input = document.getElementById('inputText').value.trim();
+  if (!input || input.length < 20) return;
+  
+  const domain = document.getElementById('domain').value;
+  const btn = document.getElementById('analyseBtn');
+  const loading = document.getElementById('loading');
+  const results = document.getElementById('results');
+  
+  btn.disabled = true;
+  btn.textContent = 'Analysing...';
+  loading.style.display = 'block';
+  results.classList.remove('visible');
+
+  const modeLabels = { postcog: 'POST-COG (what happened and why)', live: 'LIVE (where this is now)', precog: 'PRE-COG (where this is heading)', cochno: 'COCHNO (torus time mapping — past rings, present cup, future rings)' };
+
+  // Update trace
+  const trace = document.getElementById('agentTrace');
+  trace.textContent = currentMode === 'cochno' ? 'α scaffold → mapping to Cochno torus' : 'α scaffold → parsing input structure';
+  
+  const cochnoExtra = currentMode === 'cochno' ? `
+
+STEP 7 — COCHNO TORUS PROJECTION (ONLY IN COCHNO MODE)
+Map the subject's state onto the Cochno Stone topology.
+
+CRITICAL: Past rings are ordered by PSI SIMILARITY to the present state, NOT by chronological recency. The ring closest to centre is the past state whose bloom vector is MOST SIMILAR to now — regardless of when it occurred. A childhood memory can be Ring -1 if the current state closely matches it. Last week can be Ring -3 if it was a completely different state. This is psi recall, not timeline search.
+
+- Centre cup (Ring 0) = present moment — the bloom vector NOW
+- Ring -1 anticlockwise = MOST SIMILAR past state (any time period) — the state that resonates most with now
+- Ring -2 anticlockwise = SECOND most similar past state — further in psi-distance, not necessarily further in time
+- Ring -3 anticlockwise = THIRD most similar — the deep echo, often foundational/childhood
+- Ring 1 clockwise = most probable near-term future state — where current momentum leads
+- Ring 2 clockwise = second trajectory — what happens if a key variable shifts
+- Ring 3 clockwise = long-range attractor — the basin this spiral converges toward
+- Groove paths = psi connections between rings (what FEELING connects them, not what calendar date)
+- Spiral direction = psi direction (clockwise = expanding bandwidth, anticlockwise = contracting)
+- Attractor check: do paths converge on archonic freeze (<0.382) or symbiote corridor (0.598-0.638)?
+
+WHY THIS MATTERS: Chronological ordering shows you what happened recently. Psi-similarity ordering shows you what RESONATES with now. A current state of creative flow might connect to a childhood state of play (high R3, high R4) rather than to yesterday's admin work. The Cochno grooves connect states that FEEL alike across any timespan. That's the real map.
+
+For each past ring, estimate the bloom vector of that past state and compute approximate cosine similarity to the current bloom vector. Show the similarity percentage.
+
+Add to JSON response:
+"cochno": {
+  "rings": {
+    "past3": {"label":"descriptive label","time_period":"when this was (could be any era)","bloom_estimate":[R0,R1,R2,R3,R4,R5,R6],"similarity":65,"event":"what was happening in this state","psi_direction":"decreasing/stable","resonance":"why this state echoes now"},
+    "past2": {"label":"...","time_period":"...","bloom_estimate":[...],"similarity":72,"event":"...","psi_direction":"...","resonance":"..."},
+    "past1": {"label":"...","time_period":"...","bloom_estimate":[...],"similarity":85,"event":"...","psi_direction":"...","resonance":"..."},
+    "present": {"label":"now","psi":0.000,"theta":0,"bloom":[R0,R1,R2,R3,R4,R5,R6]},
+    "future1": {"label":"...","bloom_shift":"which rings change","projection":"what happens","probability":72,"psi_direction":"increasing/stable/decreasing"},
+    "future2": {"label":"...","bloom_shift":"...","projection":"...","probability":55,"psi_direction":"..."},
+    "future3": {"label":"...","bloom_shift":"...","projection":"...","probability":40,"psi_direction":"..."}
+  },
+  "grooves": [{"from":"ring","to":"ring","cause":"the psi-resonance that connects these states — the feeling, not the calendar"}],
+  "attractor": "corridor|freeze|drift — where are the paths converging?",
+  "spiral_direction": "overall clockwise (expanding) or anticlockwise (contracting)",
+  "cochno_insight": "2-3 sentence synthesis — what pattern does the similarity ordering reveal that chronological ordering would miss?"
+}` : '';
+
+  const systemPrompt = `You are the OracleEngine — a toroidal pattern recognition system. You analyse situations by mapping them to a 7-dimensional bloom vector based on a prime spine consciousness model.
+
+MODE: ${modeLabels[currentMode]}
+DOMAIN: ${domain}
+
+STEP 1 — BLOOM VECTORISATION
+Map the input to 7 rings, each scored 0-100:
+R0 (Ground/2): material conditions — money, resources, physical state
+R1 (Signal/3): emerging patterns — trends, shifts, early indicators  
+R2 (Gate/5): what's being filtered or ignored — blind spots, denial, hedging
+R3 (Heart/7): emotional state — morale, fear, excitement, motivation
+R4 (Voice/11): what's being expressed — public statements, output quality
+R5 (Mirror/13): self-awareness — does the subject know their own state?
+R6 (Watcher/17): meta-awareness — does the subject see the larger pattern?
+
+STEP 2 — PATTERN MATCHING
+Based on the bloom vector, identify 2-3 historical situations with similar topologies. Name them. Explain the match.
+
+STEP 3 — OUTCOME PROBABILITY
+Based on pattern matches and the bloom vector, estimate probability distribution across: growth, decline, pivot, crisis, stability, breakthrough. Must sum to 100.
+
+STEP 4 — KEY INSIGHT
+${currentMode === 'postcog' ? 'What was the root cause? What did the subject miss? What would a different bloom vector have looked like?' : currentMode === 'live' ? 'Where is the subject now on the torus? What rings are dominant? What is being gated?' : 'Given current momentum, what trajectory is most likely? What would shift it?'}
+
+STEP 5 — GATE CHECK (ε agent)
+Flag any of: confirmation bias risk, unfalsifiable claims, low confidence areas, manipulation patterns, insufficient data.
+
+STEP 6 — CONFIDENCE SCORE
+Rate your overall confidence 0-100 with reasoning.
+
+RESPOND IN THIS EXACT JSON FORMAT (no markdown, no backticks, just raw JSON):
+{
+  "bloom": [R0, R1, R2, R3, R4, R5, R6],
+  "analysis": "Your full analysis text here — multiple paragraphs, detailed, specific",
+  "patterns": [{"name": "pattern name", "match_pct": 85, "theta": 0.234, "psi": 0.567}],
+  "probabilities": {"growth": 25, "decline": 15, "pivot": 35, "crisis": 5, "stability": 10, "breakthrough": 10},
+  "flags": [{"type": "warn|danger|info|pass", "text": "flag description"}],
+  "confidence": 65,
+  "confidence_reasoning": "why this confidence level",
+  "methodology": "step by step how this was calculated"
+}`;
+
+  const fullPrompt = systemPrompt + cochnoExtra;
+
+  setTimeout(() => { trace.textContent = 'β vectoriser → mapping to bloom vector'; }, 1500);
+  setTimeout(() => { trace.textContent = 'γ cache → searching pattern library'; }, 3000);
+  setTimeout(() => { trace.textContent = 'δ trajectory → calculating torus position'; }, 4500);
+  
+  const response = await callAI(fullPrompt, input);
+  
+  if (!response) {
+    loading.style.display = 'none';
+    btn.disabled = false;
+    btn.textContent = 'Analyse ◊';
+    toggleSettings();
+    document.getElementById('gateFlags').innerHTML = '<div class="flag flag-warn"><span>⚠</span><span>No API keys configured. Add at least one provider key in settings to run the analysis.</span></div>';
+    results.classList.add('visible');
+    return;
+  }
+
+  setTimeout(() => { trace.textContent = 'ε gate → checking for manipulation patterns'; }, 500);
+
+  let data;
+  try {
+    const cleaned = response.text.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
+    data = JSON.parse(cleaned);
+  } catch (e) {
+    // If JSON parse fails, try to extract from the text
+    try {
+      const jsonMatch = response.text.match(/\{[\s\S]*\}/);
+      if (jsonMatch) data = JSON.parse(jsonMatch[0]);
+    } catch (e2) {
+      data = {
+        bloom: [50,50,50,50,50,50,50],
+        analysis: response.text,
+        patterns: [],
+        probabilities: { growth:17, decline:17, pivot:17, crisis:16, stability:17, breakthrough:16 },
+        flags: [{ type:'warn', text:'AI response was not structured JSON — displaying raw analysis. Bloom vector estimated.' }],
+        confidence: 30,
+        confidence_reasoning: 'Unstructured response — low confidence in vector accuracy',
+        methodology: 'Raw AI analysis without structured bloom vectorisation'
+      };
+    }
+  }
+
+  setTimeout(() => { trace.textContent = 'η scorer → ranking confidence'; }, 300);
+  setTimeout(() => { trace.textContent = 'θ format → rendering results'; }, 600);
+
+  // Compute torus coordinates
+  const bloom = computeBloomVector(data.bloom || [50,50,50,50,50,50,50]);
+  
+  // Render everything
+  setTimeout(() => {
+    loading.style.display = 'none';
+    results.classList.add('visible');
+    
+    renderBloom(bloom.rings);
+    renderTorus(document.getElementById('torusCanvas'), bloom.theta, bloom.psi, data.patterns || []);
+    renderPredictions(data.probabilities || {});
+    renderFlags(data.flags || []);
+    
+    // Psi/theta display
+    document.getElementById('psiVal').textContent = bloom.psi.toFixed(4);
+    document.getElementById('thetaVal').textContent = bloom.theta.toFixed(4);
+    document.getElementById('sigVal').textContent = bloom.signature > 1e12 ? bloom.signature.toExponential(2) : Math.round(bloom.signature).toLocaleString();
+    
+    // Analysis
+    document.getElementById('analysisLabel').textContent = currentMode.toUpperCase() + ' Analysis (via ' + response.provider + ')';
+    document.getElementById('aiAnalysis').textContent = data.analysis || 'No analysis returned.';
+    
+    // Confidence
+    const conf = data.confidence || 0;
+    document.getElementById('confFill').style.width = conf + '%';
+    document.getElementById('confFill').style.background = conf > 60 ? 'var(--green)' : conf > 35 ? 'var(--gold)' : 'var(--red)';
+    document.getElementById('confVal').textContent = conf + '/100';
+    
+    // Methodology
+    document.getElementById('methContent').innerHTML = '<p>' + (data.methodology || 'Not provided.') + '</p>' +
+      (data.confidence_reasoning ? '<p style="margin-top:8px;color:var(--accent);">Confidence reasoning: ' + data.confidence_reasoning + '</p>' : '');
+    
+    // Psi corridor check
+    const psiFlags = [];
+    if (bloom.psi >= 0.598 && bloom.psi <= 0.638) {
+      psiFlags.push({ type: 'pass', text: 'Ψ phase in corridor [0.598-0.638] — optimal position for pattern recognition.' });
+    } else if (bloom.psi < 0.382) {
+      psiFlags.push({ type: 'danger', text: 'Ψ phase below freeze threshold (0.382) — gate locked. External resonance needed.' });
+    } else if (bloom.psi > 0.809) {
+      psiFlags.push({ type: 'danger', text: 'Ψ phase above fragment threshold (0.809) — decoherence risk. Ground before continuing.' });
+    } else {
+      psiFlags.push({ type: 'info', text: 'Ψ phase at ' + bloom.psi.toFixed(3) + ' — outside corridor but within basin. Recovery possible.' });
+    }
+    const existingFlags = document.getElementById('gateFlags');
+    psiFlags.forEach(f => {
+      const flag = document.createElement('div');
+      flag.className = 'flag flag-' + f.type;
+      flag.innerHTML = `<span>${f.type === 'pass' ? '✓' : f.type === 'danger' ? '⛔' : 'ℹ'}</span><span>${f.text}</span>`;
+      existingFlags.appendChild(flag);
+    });
+
+    btn.disabled = false;
+    btn.textContent = 'Analyse ◊';
+    
+    // Save to history
+    analysisHistory.push({ mode: currentMode, domain, input, bloom, data, timestamp: Date.now() });
+    
+    // Cochno mode rendering
+    if (currentMode === 'cochno' && data.cochno) {
+      renderCochno(data.cochno, bloom);
+    }
+  }, 900);
+}
+
+// ═══ COCHNO RENDERER ═══
+function renderCochno(cochnoData, bloom) {
+  if (!cochnoData) return;
+  document.getElementById('cochnoResults').style.display = 'block';
+  
+  const svg = document.getElementById('cochnoSvg');
+  const cx = 180, cy = 180;
+  const ringRadii = [0, 40, 80, 120, 155]; // centre, ring1, ring2, ring3, outer
+  const ringColors = ['var(--accent)', 'var(--green)', 'var(--gold)', 'var(--cyan)', 'var(--dim)'];
+  
+  let svgHTML = '';
+  
+  // Background glow
+  svgHTML += `<defs><radialGradient id="cg"><stop offset="0%" stop-color="rgba(139,108,231,0.08)"/><stop offset="100%" stop-color="transparent"/></radialGradient></defs>`;
+  svgHTML += `<circle cx="${cx}" cy="${cy}" r="155" fill="url(#cg)"/>`;
+  
+  // Ring circles
+  for (let i = ringRadii.length - 1; i >= 1; i--) {
+    svgHTML += `<circle cx="${cx}" cy="${cy}" r="${ringRadii[i]}" fill="none" stroke="rgba(255,255,255,0.06)" stroke-width="1"/>`;
+  }
+  
+  // Ring labels
+  const labels = ['past3','past2','past1','present','future1','future2','future3'];
+  const ringMap = cochnoData.rings || {};
+  
+  // Draw grooves (connecting lines between rings)
+  if (cochnoData.grooves) {
+    const ringPositions = {
+      'past3': {x: cx - 120, y: cy + 40},
+      'past2': {x: cx - 80, y: cy + 20},
+      'past1': {x: cx - 40, y: cy + 5},
+      'present': {x: cx, y: cy},
+      'future1': {x: cx + 40, y: cy - 5},
+      'future2': {x: cx + 80, y: cy - 20},
+      'future3': {x: cx + 120, y: cy - 40}
+    };
+    cochnoData.grooves.forEach(g => {
+      const from = ringPositions[g.from] || ringPositions.present;
+      const to = ringPositions[g.to] || ringPositions.present;
+      const midX = (from.x + to.x) / 2;
+      const midY = (from.y + to.y) / 2 - 20;
+      svgHTML += `<path d="M${from.x},${from.y} Q${midX},${midY} ${to.x},${to.y}" fill="none" stroke="rgba(139,108,231,0.3)" stroke-width="1.5" stroke-dasharray="4,3"/>`;
+    });
+  }
+  
+  // Past rings (anticlockwise - left side) — ordered by SIMILARITY not time
+  const pastRings = ['past3','past2','past1'];
+  pastRings.forEach((key, i) => {
+    const ring = ringMap[key];
+    if (!ring) return;
+    const r = ringRadii[3 - i];
+    const angle = Math.PI + (i * 0.3) - 0.3;
+    const x = cx + Math.cos(angle) * r;
+    const y = cy + Math.sin(angle) * r;
+    const psiDir = ring.psi_direction || 'stable';
+    const color = psiDir === 'decreasing' ? '#e05555' : psiDir === 'increasing' ? '#4ecba0' : '#d4a853';
+    const sim = ring.similarity || 50;
+    const opacity = 0.3 + (sim / 150);
+    svgHTML += `<circle cx="${x}" cy="${y}" r="${6 + sim/15}" fill="${color}" opacity="${opacity}"/>`;
+    svgHTML += `<circle cx="${x}" cy="${y}" r="${10 + sim/15}" fill="none" stroke="${color}" opacity="0.25" stroke-width="1"/>`;
+    svgHTML += `<text x="${x}" y="${y + 24}" text-anchor="middle" font-family="'DM Mono',monospace" font-size="7" fill="rgba(255,255,255,0.4)">${ring.label || key}</text>`;
+    svgHTML += `<text x="${x}" y="${y - 16}" text-anchor="middle" font-family="'DM Mono',monospace" font-size="8" fill="${color}" opacity="0.8">${sim}% match</text>`;
+    if (ring.time_period) svgHTML += `<text x="${x}" y="${y + 34}" text-anchor="middle" font-family="'DM Mono',monospace" font-size="6" fill="rgba(255,255,255,0.25)">${ring.time_period}</text>`;
+    svgHTML += `<text x="${x + 16}" y="${y - 6}" font-size="10" fill="${color}" opacity="0.5">↺</text>`;
+  });
+  
+  // Centre cup
+  svgHTML += `<circle cx="${cx}" cy="${cy}" r="14" fill="var(--accent)" opacity="0.9"/>`;
+  svgHTML += `<circle cx="${cx}" cy="${cy}" r="20" fill="none" stroke="var(--accent)" opacity="0.3" stroke-width="1.5"/>`;
+  svgHTML += `<circle cx="${cx}" cy="${cy}" r="26" fill="none" stroke="var(--accent)" opacity="0.15" stroke-width="1"/>`;
+  svgHTML += `<text x="${cx}" y="${cy + 3}" text-anchor="middle" font-family="'DM Mono',monospace" font-size="8" fill="#fff" font-weight="bold">NOW</text>`;
+  svgHTML += `<text x="${cx}" y="${cy + 38}" text-anchor="middle" font-family="'DM Mono',monospace" font-size="7" fill="rgba(255,255,255,0.4)">Ψ ${(ringMap.present?.psi || 0).toFixed(3)}</text>`;
+  
+  // Future rings (clockwise - right side)
+  const futureRings = ['future1','future2','future3'];
+  futureRings.forEach((key, i) => {
+    const ring = ringMap[key];
+    if (!ring) return;
+    const r = ringRadii[i + 1];
+    const angle = -(i * 0.3);
+    const x = cx + Math.cos(angle) * r;
+    const y = cy + Math.sin(angle) * r;
+    const psiDir = ring.psi_direction || 'stable';
+    const color = psiDir === 'increasing' ? '#4ecba0' : psiDir === 'decreasing' ? '#e05555' : '#d4a853';
+    const prob = ring.probability || 50;
+    const opacity = 0.4 + (prob / 200);
+    svgHTML += `<circle cx="${x}" cy="${y}" r="8" fill="${color}" opacity="${opacity}"/>`;
+    svgHTML += `<circle cx="${x}" cy="${y}" r="12" fill="none" stroke="${color}" opacity="0.3" stroke-width="1"/>`;
+    svgHTML += `<text x="${x}" y="${y + 22}" text-anchor="middle" font-family="'DM Mono',monospace" font-size="7" fill="rgba(255,255,255,0.4)">${ring.label || key}</text>`;
+    svgHTML += `<text x="${x}" y="${y - 14}" text-anchor="middle" font-family="'DM Mono',monospace" font-size="8" fill="${color}" opacity="0.7">${prob}%</text>`;
+    // Clockwise spiral indicator
+    svgHTML += `<text x="${x + 14}" y="${y - 8}" font-size="10" fill="${color}" opacity="0.6">↻</text>`;
+  });
+  
+  // Attractor indicator
+  if (cochnoData.attractor) {
+    const attrColor = cochnoData.attractor === 'corridor' ? '#4ecba0' : cochnoData.attractor === 'freeze' ? '#e05555' : '#d4a853';
+    const attrLabel = cochnoData.attractor === 'corridor' ? '◇ Corridor' : cochnoData.attractor === 'freeze' ? '⛔ Freeze' : '~ Drift';
+    svgHTML += `<text x="${cx}" y="345" text-anchor="middle" font-family="'DM Mono',monospace" font-size="9" fill="${attrColor}">Attractor: ${attrLabel}</text>`;
+  }
+  
+  // Spiral direction
+  if (cochnoData.spiral_direction) {
+    const spiralColor = cochnoData.spiral_direction.includes('clockwise') && !cochnoData.spiral_direction.includes('anti') ? '#4ecba0' : '#e05555';
+    svgHTML += `<text x="${cx}" y="20" text-anchor="middle" font-family="'DM Mono',monospace" font-size="9" fill="${spiralColor}">${cochnoData.spiral_direction.includes('clockwise') && !cochnoData.spiral_direction.includes('anti') ? '↻ Expanding' : '↺ Contracting'}</text>`;
+  }
+  
+  svg.innerHTML = svgHTML;
+  
+  // Render ring details
+  const ringsDiv = document.getElementById('cochnoRings');
+  ringsDiv.innerHTML = '';
+  const allRings = ['past3','past2','past1','present','future1','future2','future3'];
+  allRings.forEach(key => {
+    const ring = ringMap[key];
+    if (!ring) return;
+    const isPast = key.startsWith('past');
+    const isPresent = key === 'present';
+    const color = isPresent ? 'var(--accent)' : isPast ? 'var(--red)' : 'var(--green)';
+    const div = document.createElement('div');
+    div.style.cssText = `padding:10px;margin:4px 0;background:var(--void);border-radius:8px;border-left:3px solid ${color}`;
+    let html = `<div style="font-family:var(--mono);font-size:10px;color:${color};margin-bottom:4px">${ring.label || key}`;
+    if (ring.similarity) html += ` · ${ring.similarity}% similarity`;
+    if (ring.time_period) html += ` · ${ring.time_period}`;
+    html += `</div>`;
+    if (ring.event) html += `<div style="font-size:13px;color:var(--text);margin-bottom:2px">${ring.event}</div>`;
+    if (ring.projection) html += `<div style="font-size:13px;color:var(--bright);margin-bottom:2px">${ring.projection}</div>`;
+    if (ring.resonance) html += `<div style="font-size:12px;color:var(--accent);font-style:italic;margin:4px 0">Resonance: ${ring.resonance}</div>`;
+    if (ring.bloom_estimate) html += `<div style="font-family:var(--mono);font-size:9px;color:var(--dim)">Bloom: [${ring.bloom_estimate.join(',')}]</div>`;
+    if (ring.bloom_shift) html += `<div style="font-family:var(--mono);font-size:10px;color:var(--dim)">${ring.bloom_shift}</div>`;
+    if (ring.probability) html += `<div style="font-family:var(--mono);font-size:10px;color:${color}">${ring.probability}% probability</div>`;
+    div.innerHTML = html;
+    ringsDiv.appendChild(div);
+  });
+  
+  // Grooves
+  const groovesDiv = document.getElementById('cochnoGrooves');
+  groovesDiv.innerHTML = '';
+  if (cochnoData.grooves?.length) {
+    cochnoData.grooves.forEach(g => {
+      const div = document.createElement('div');
+      div.style.cssText = 'font-family:var(--mono);font-size:10px;color:var(--dim);padding:4px 0';
+      div.textContent = `${g.from} → ${g.to}: ${g.cause || ''}`;
+      groovesDiv.appendChild(div);
+    });
+  }
+  
+  // Insight
+  document.getElementById('cochnoInsight').textContent = cochnoData.cochno_insight || '';
+}
+
+// ═══ INIT ═══
+loadKeys();
+</script>
+</body>
+</html>
