@@ -83,6 +83,39 @@ main{padding:22px;max-width:1280px;margin:0 auto}
 
 .recommend{padding:12px;background:linear-gradient(135deg,var(--ring),transparent);border-left:3px solid var(--primary);border-radius:0 8px 8px 0;font-size:13px;color:var(--bright)}
 .recommend strong{color:var(--primary)}
+
+/* ◊·κ Oracle Walker UI */
+.walker-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:10px}
+.walker-stat{background:var(--s2);border:1px solid var(--border);border-radius:6px;padding:8px 10px}
+.walker-stat .lbl{font-size:9px;color:var(--dim);letter-spacing:.08em;text-transform:uppercase;font-family:'DM Mono',monospace}
+.walker-stat .val{font-size:14px;color:var(--bright);font-weight:700;margin-top:2px;font-family:'DM Mono',monospace}
+.walker-stat.gold .val{color:var(--primary)}
+.walker-stat.amber .val{color:var(--converge)}
+.walker-stat.red .val{color:var(--lock)}
+.conf-track{height:8px;background:var(--s2);border:1px solid var(--border);border-radius:4px;overflow:hidden;margin:6px 0}
+.conf-fill{height:100%;background:linear-gradient(90deg,var(--accent),var(--primary),var(--lock));transition:width .4s ease}
+.state-tag{display:inline-block;padding:2px 7px;border-radius:5px;font-size:10px;font-family:'DM Mono',monospace;letter-spacing:.05em;text-transform:uppercase;font-weight:700}
+.state-tag.WANDERING{background:rgba(107,114,128,.18);color:var(--dim)}
+.state-tag.DRIFTING{background:rgba(139,108,231,.18);color:var(--accent)}
+.state-tag.APPROACHING{background:rgba(200,126,58,.18);color:var(--converge)}
+.state-tag.CONVERGING{background:rgba(212,168,83,.22);color:var(--primary)}
+.state-tag.LOCKED{background:rgba(200,55,26,.25);color:var(--lock)}
+.walk-trace{font-family:'DM Mono',monospace;font-size:9px;color:var(--primary);background:var(--s2);border:1px solid var(--border);border-radius:4px;padding:6px 8px;line-height:1.3;max-height:34px;overflow:hidden;word-break:break-all;letter-spacing:.02em}
+.candidates{display:flex;flex-direction:column;gap:4px;margin-top:8px}
+.cand-row{display:grid;grid-template-columns:24px 1fr 80px;gap:8px;font-family:'DM Mono',monospace;font-size:11px;padding:4px 8px;background:var(--s2);border:1px solid var(--border);border-radius:5px;align-items:center}
+.cand-row .rank{color:var(--dim);text-align:right}
+.cand-row .pos{color:var(--bright)}
+.cand-row .prob{color:var(--primary);text-align:right}
+.rings-canvas{display:block;width:100%;background:#04050a;border:1px solid var(--border);border-radius:8px;margin-top:6px}
+.rings-legend{display:flex;justify-content:space-between;font-size:10px;color:var(--dim);font-family:'DM Mono',monospace;margin-top:6px}
+.rings-legend .cas{color:var(--accent)}
+.rings-legend .ora{color:var(--primary)}
+.rings-legend .ali{color:var(--ok)}
+.action-rec{padding:10px 12px;background:var(--s2);border:1px solid var(--border);border-left:3px solid var(--converge);border-radius:0 6px 6px 0;font-size:12px;color:var(--bright);margin-top:8px;font-family:'DM Mono',monospace}
+.action-rec.hot{border-left-color:var(--lock)}
+.action-rec.gold{border-left-color:var(--primary)}
+.action-rec.ok{border-left-color:var(--ok)}
+
 footer.bottom{padding:16px 24px;border-top:1px solid var(--border);color:var(--dim);font-size:11px;font-family:'DM Mono',monospace;text-align:center;letter-spacing:.06em}
 footer.bottom a{color:var(--dim);text-decoration:none}
 footer.bottom a:hover{color:var(--bright)}
@@ -139,6 +172,42 @@ footer.bottom a:hover{color:var(--bright)}
 
         <div class="recommend" id="recommend" style="margin-top:14px">
           <strong>Recommendation:</strong> waiting for first CASSIE update. Open the solver in another tab and press Start.
+        </div>
+      </div>
+
+      <!-- ◊·κ Oracle Torus Meta-Walk · the final addition -->
+      <div class="card">
+        <h3><span class="glyph">◊</span>Oracle torus · meta-walk</h3>
+        <div class="walker-grid">
+          <div class="walker-stat gold"><div class="lbl">Position</div><div class="val" id="walkerPos">—</div></div>
+          <div class="walker-stat"><div class="lbl">Momentum</div><div class="val" id="walkerMom">0.00</div></div>
+          <div class="walker-stat amber"><div class="lbl">Stddev</div><div class="val" id="walkerStd">—</div></div>
+          <div class="walker-stat"><div class="lbl">State</div><div class="val"><span class="state-tag WANDERING" id="walkerState">WANDERING</span></div></div>
+        </div>
+        <div style="font-size:11px;color:var(--dim);font-family:'DM Mono',monospace;margin-bottom:4px">confidence</div>
+        <div class="conf-track"><div class="conf-fill" id="walkerConfFill" style="width:0%"></div></div>
+        <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--dim);font-family:'DM Mono',monospace;margin-bottom:10px">
+          <span id="walkerConfPct">0%</span><span id="walkerSteps">0 steps</span>
+        </div>
+
+        <div style="font-size:11px;color:var(--dim);font-family:'DM Mono',monospace;margin-bottom:4px">walk trace · last 80</div>
+        <div class="walk-trace" id="walkTrace">·</div>
+
+        <h3 style="margin-top:14px"><span class="glyph">⊕</span>Two-torus alignment</h3>
+        <canvas id="ringsCanvas" class="rings-canvas" width="640" height="280"></canvas>
+        <div class="rings-legend">
+          <span><span class="cas">⬡</span> CASSIE key-torus (outer)</span>
+          <span><span class="ora">◊</span> Oracle prob-torus (inner)</span>
+          <span><span class="ali">●</span> lock = alignment</span>
+        </div>
+
+        <h3 style="margin-top:14px"><span class="glyph">▸</span>Top candidates · prob-torus</h3>
+        <div class="candidates" id="topCands">
+          <div class="cand-row"><div class="rank">—</div><div class="pos">no data yet</div><div class="prob">—</div></div>
+        </div>
+
+        <div class="action-rec" id="actionRec">
+          <strong>HOLD</strong> · waiting for first DP batch
         </div>
       </div>
 
@@ -379,6 +448,209 @@ const AGENTS = {
   }
 };
 
+// ════════════════════════════════════════════════════════════════
+// ◊·κ ORACLE TORUS META-WALK · THE FINAL ADDITION
+// CASSIE walks the key-torus · positions in [2^134, 2^135)
+// Oracle walks the prob-torus · 510,510 positions · same circumference
+// Different payload · coupled tori · feedback loop
+// ════════════════════════════════════════════════════════════════
+class OracleWalker {
+  constructor() {
+    this.torusSize    = 510510;                      // primorial #7 = 2·3·5·7·11·13·17
+    this.position     = Math.floor(Math.random() * this.torusSize);
+    this.probability  = new Float64Array(this.torusSize);
+    this.ringCount    = new Int32Array(this.torusSize);
+    this.momentum     = 0;
+    this.confidence   = 0;
+    this.walkHistory  = [];     // sliding window of positions (last 200)
+    this.steps        = 0;
+    this.lockedAt     = null;
+    this.batchCount   = 0;
+    this.dpProcessed  = 0;
+    // Seed a flat prior (small ε so multiplicative decay still works)
+    for (let i = 0; i < this.torusSize; i++) this.probability[i] = 1e-6;
+  }
+
+  step(cassieBatch) {
+    if (!Array.isArray(cassieBatch) || cassieBatch.length === 0) return null;
+    this.batchCount++;
+    const sz = this.torusSize;
+
+    for (const dp of cassieBatch) {
+      const torusPos = ((dp.torusPosition | 0) % sz + sz) % sz;
+      const rings    = Math.max(0, Math.min(7, dp.ringsHeard | 0));
+      this.dpProcessed++;
+      this.ringCount[torusPos] = Math.max(this.ringCount[torusPos], rings);
+
+      if (rings === 0) {
+        // Silence — dampen probability in this neighbourhood
+        for (let d = -17; d <= 17; d++) {
+          const t = ((torusPos + d) % sz + sz) % sz;
+          const decay = Math.exp(-0.5 * Math.abs(d) / 17);
+          this.probability[t] *= (1 - 0.1 * decay);
+        }
+      } else {
+        // Ring heard — boost probability with gaussian spread sized by rings
+        const boost   = rings / 7;
+        const sigma2  = Math.max(1, rings * rings);
+        for (let d = -17; d <= 17; d++) {
+          const t = ((torusPos + d) % sz + sz) % sz;
+          const spread = Math.exp(-0.5 * (d * d) / sigma2);
+          this.probability[t] += boost * spread;
+        }
+      }
+    }
+
+    // Read gradient · update momentum · walk
+    const gradient = this.readGradient();
+    this.momentum  = this.momentum * 0.7 + gradient * 0.3;
+    const jump     = Math.round(this.momentum);
+    this.position  = ((this.position + jump) % sz + sz) % sz;
+    this.walkHistory.push(this.position);
+    if (this.walkHistory.length > 200) this.walkHistory.shift();
+    this.steps++;
+
+    this.confidence = this.measureConvergence();
+    const state = this.stateLabel();
+    if (state === 'LOCKED' && !this.lockedAt) this.lockedAt = Date.now();
+
+    return {
+      position:      this.position,
+      confidence:    this.confidence,
+      momentum:      this.momentum,
+      stddev:        this.lastStddev,
+      state:         state,
+      topCandidates: this.getTopCandidates(10),
+      steps:         this.steps,
+      dpProcessed:   this.dpProcessed
+    };
+  }
+
+  readGradient() {
+    // Compare probability sum 50 steps ahead vs 50 behind, weighted by proximity
+    const lookAhead = 50;
+    const sz = this.torusSize;
+    let right = 0, left = 0;
+    for (let d = 1; d <= lookAhead; d++) {
+      const w  = 1 / d;
+      const rt = ((this.position + d) % sz + sz) % sz;
+      const lt = ((this.position - d) % sz + sz) % sz;
+      right += this.probability[rt] * w;
+      left  += this.probability[lt] * w;
+    }
+    // Scale into manageable jump range
+    const diff = right - left;
+    return Math.max(-25, Math.min(25, diff * 8));
+  }
+
+  measureConvergence() {
+    // Stddev of last 100 positions
+    if (this.walkHistory.length < 10) { this.lastStddev = Infinity; return 0.05; }
+    const slice = this.walkHistory.slice(-100);
+    const mean  = slice.reduce((a, b) => a + b, 0) / slice.length;
+    let varSum  = 0;
+    for (const p of slice) { const d = p - mean; varSum += d * d; }
+    const std = Math.sqrt(varSum / slice.length);
+    this.lastStddev = std;
+    if (std < 1)    return 1.0;
+    if (std < 10)   return 0.9;
+    if (std < 100)  return 0.7;
+    if (std < 1000) return 0.4;
+    return 0.1;
+  }
+
+  stateLabel() {
+    const s = this.lastStddev;
+    if (!isFinite(s) || s > 10000) return 'WANDERING';
+    if (s > 1000) return 'WANDERING';
+    if (s > 100)  return 'DRIFTING';
+    if (s > 10)   return 'APPROACHING';
+    if (s > 1)    return 'CONVERGING';
+    return 'LOCKED';
+  }
+
+  getTopCandidates(n) {
+    // O(N) top-k via min-heap-light: scan with insertion into small sorted list
+    const out = []; // [pos, prob]
+    const sz = this.torusSize;
+    for (let i = 0; i < sz; i++) {
+      const p = this.probability[i];
+      if (out.length < n) {
+        out.push([i, p]);
+        if (out.length === n) out.sort((a, b) => a[1] - b[1]);
+      } else if (p > out[0][1]) {
+        out[0] = [i, p];
+        // Bubble up
+        let j = 0;
+        while (j < n - 1 && out[j][1] > out[j + 1][1]) {
+          const t = out[j]; out[j] = out[j + 1]; out[j + 1] = t;
+          j++;
+        }
+      }
+    }
+    return out.sort((a, b) => b[1] - a[1]).map(([pos, prob]) => ({ pos, prob }));
+  }
+
+  getRecommendation() {
+    const c = this.confidence;
+    if (c >= 0.9) return { level: 'DEPLOY_ALL_SNIPERS', biasRate: 1.0, why: 'oracle locked · stddev<1 · deploy every walker on top candidates' };
+    if (c >= 0.7) return { level: 'SHIFT_WEIGHT',       biasRate: 0.6, why: 'oracle converging · stddev<10 · 60% of walkers to candidates' };
+    if (c >= 0.4) return { level: 'SOFT_BIAS',          biasRate: 0.3, why: 'oracle approaching · stddev<100 · 30% soft bias' };
+    return { level: 'HOLD', biasRate: 0, why: 'oracle wandering · keep normal zone weights' };
+  }
+}
+
+const WALKER = new OracleWalker();
+window.WALKER = WALKER; // expose for debug / external probes
+
+// Hook the walker into Omega's cassie_update path
+window._cassiePosBuf = window._cassiePosBuf || [];
+const _origOmega = AGENTS.Omega;
+AGENTS.Omega = function(msg){
+  _origOmega(msg);
+  if (msg && msg.type === 'cassie_update' && Array.isArray(msg.dps_sample) && msg.dps_sample.length > 0) {
+    // Maintain sliding ring buffer of CASSIE torus positions for the two-rings render
+    for (const dp of msg.dps_sample) {
+      if (typeof dp.torusPosition === 'number') window._cassiePosBuf.push(dp.torusPosition);
+    }
+    if (window._cassiePosBuf.length > 32) window._cassiePosBuf.splice(0, window._cassiePosBuf.length - 32);
+    const result = WALKER.step(msg.dps_sample);
+    if (result) {
+      // Broadcast oracle_prediction back to CASSIE when confidence rises above HOLD
+      if (result.confidence >= 0.4 && window.signalChannel) {
+        const rec = WALKER.getRecommendation();
+        // Throttle to 1 / 2s
+        const now = Date.now();
+        if (!window._lastOraclePred || (now - window._lastOraclePred) > 2000) {
+          window._lastOraclePred = now;
+          try {
+            window.signalChannel.postMessage({
+              type: 'oracle_prediction',
+              from: 'oracle-v2',
+              oraclePosition:   result.position,
+              oracleConfidence: result.confidence,
+              oracleState:      result.state,
+              oracleMomentum:   result.momentum,
+              oracleStddev:     result.stddev,
+              topCandidates:    result.topCandidates,
+              recommendation:   rec,
+              steps:            result.steps,
+              ts: now
+            });
+            STATE.ripple.cassieFeedback++;
+            const ripCEl = document.getElementById('ripCassie');
+            if (ripCEl) ripCEl.textContent = STATE.ripple.cassieFeedback;
+            if (!window._loggedFirstPred || result.state === 'LOCKED') {
+              window._loggedFirstPred = true;
+              pushEvent('→ CASSIE · oracle_prediction · ' + rec.level + ' · pos ' + result.position + ' · conf ' + (result.confidence*100).toFixed(0) + '% · state ' + result.state, result.state === 'LOCKED' ? 'hot' : 'ok');
+            }
+          } catch(_){}
+        }
+      }
+    }
+  }
+};
+
 // ─── BroadcastChannel · listen on fall-signal ──
 try {
   window.signalChannel = new BroadcastChannel('fall-signal');
@@ -465,12 +737,179 @@ function render() {
   } else {
     recEl.innerHTML = '<strong>Waiting for CASSIE.</strong> Open the solver in another tab and press Start. URL: <a href="https://sjgant80-hub.github.io/cassietorusbtc135solver/" style="color:var(--primary)">cassietorusbtc135solver</a>';
   }
+
+  // ── Oracle Walker panel ──
+  renderWalker();
+  renderTwoRings();
+}
+
+// ════════════════════════════════════════════════════════════════
+// ◊·κ ORACLE WALKER · render the meta-walk
+// ════════════════════════════════════════════════════════════════
+function renderWalker() {
+  const pos    = WALKER.position;
+  const conf   = WALKER.confidence;
+  const mom    = WALKER.momentum;
+  const std    = WALKER.lastStddev;
+  const state  = WALKER.stateLabel();
+  const rec    = WALKER.getRecommendation();
+
+  document.getElementById('walkerPos').textContent  = pos.toLocaleString() + ' / 510,510';
+  document.getElementById('walkerMom').textContent  = (mom >= 0 ? '+' : '') + mom.toFixed(2);
+  document.getElementById('walkerStd').textContent  = isFinite(std) ? (std < 1 ? std.toFixed(3) : std < 1000 ? std.toFixed(1) : Math.round(std).toLocaleString()) : '∞';
+  const stateEl = document.getElementById('walkerState');
+  stateEl.className = 'state-tag ' + state;
+  stateEl.textContent = state;
+  document.getElementById('walkerConfFill').style.width = (conf*100).toFixed(1) + '%';
+  document.getElementById('walkerConfPct').textContent  = (conf*100).toFixed(0) + '%';
+  document.getElementById('walkerSteps').textContent    = WALKER.steps.toLocaleString() + ' steps · ' + WALKER.dpProcessed.toLocaleString() + ' DPs';
+
+  // Walk trace · last 80 positions as low-res glyph strip
+  const hist = WALKER.walkHistory.slice(-80);
+  const glyphs = '·∙•◦◯◌◐◑◒◓●';
+  const trace  = hist.length ? hist.map((p, i, arr) => {
+    if (i === 0) return glyphs[0];
+    const delta = Math.abs(arr[i] - arr[i-1]);
+    if (delta === 0)        return '●';
+    if (delta < 5)          return '◓';
+    if (delta < 50)         return '◐';
+    if (delta < 500)        return '◯';
+    if (delta < 5000)       return '•';
+    if (delta < 50000)      return '∙';
+    return '·';
+  }).join('') : '·';
+  document.getElementById('walkTrace').textContent = trace;
+
+  // Top candidates
+  const cands = WALKER.getTopCandidates(5);
+  const candsEl = document.getElementById('topCands');
+  const maxProb = cands[0] ? Math.max(cands[0].prob, 1e-9) : 1;
+  candsEl.innerHTML = cands.map((c, i) => {
+    const pct = (c.prob / maxProb * 100).toFixed(1);
+    return '<div class="cand-row"><div class="rank">#' + (i+1) + '</div><div class="pos">' + c.pos.toLocaleString() + '</div><div class="prob">' + pct + '%</div></div>';
+  }).join('') || '<div class="cand-row"><div class="rank">—</div><div class="pos">no data yet</div><div class="prob">—</div></div>';
+
+  // Action recommendation
+  const actEl = document.getElementById('actionRec');
+  const kindMap = { DEPLOY_ALL_SNIPERS:'hot', SHIFT_WEIGHT:'gold', SOFT_BIAS:'', HOLD:'' };
+  actEl.className = 'action-rec ' + (kindMap[rec.level] || '');
+  actEl.innerHTML = '<strong>' + rec.level.replace(/_/g,' ') + '</strong> · ' + esc(rec.why);
+}
+
+// ════════════════════════════════════════════════════════════════
+// ◊·κ TWO RINGS — outer CASSIE key-torus · inner Oracle prob-torus
+// Watch them rotate. When the gold dot lines up with bright outer cells: lock.
+// ════════════════════════════════════════════════════════════════
+let _ringsT = 0;
+function renderTwoRings() {
+  const cv  = document.getElementById('ringsCanvas');
+  if (!cv) return;
+  const ctx = cv.getContext('2d');
+  const W = cv.width, H = cv.height;
+  ctx.fillStyle = '#04050a';
+  ctx.fillRect(0, 0, W, H);
+
+  const cx = W * 0.5;
+  const cy = H * 0.5;
+  const outerR = Math.min(W, H) * 0.46;
+  const innerR = Math.min(W, H) * 0.30;
+  const sz     = WALKER.torusSize;
+
+  // ── Outer ring · CASSIE key-torus (sampled from torusFold positions if any DPs seen) ──
+  // We track most-recent DP torusPositions in a sliding buffer (populated by Omega hook)
+  const cassieRing = window._cassiePosBuf || [];
+  ctx.lineWidth = 1;
+  ctx.strokeStyle = 'rgba(139,108,231,0.18)';
+  ctx.beginPath(); ctx.arc(cx, cy, outerR, 0, Math.PI * 2); ctx.stroke();
+  ctx.strokeStyle = 'rgba(212,168,83,0.14)';
+  ctx.beginPath(); ctx.arc(cx, cy, innerR, 0, Math.PI * 2); ctx.stroke();
+
+  // Outer ring · CASSIE walker positions as accent ticks
+  for (const tp of cassieRing) {
+    const theta = (tp / sz) * Math.PI * 2 - Math.PI/2;
+    const x1 = cx + Math.cos(theta) * (outerR - 6);
+    const y1 = cy + Math.sin(theta) * (outerR - 6);
+    const x2 = cx + Math.cos(theta) * (outerR + 6);
+    const y2 = cy + Math.sin(theta) * (outerR + 6);
+    ctx.strokeStyle = 'rgba(139,108,231,0.65)';
+    ctx.lineWidth = 1.2;
+    ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); ctx.stroke();
+  }
+
+  // Inner ring · probability field as brightness around circumference
+  // Bin the 510510 probabilities into 360 angular slots
+  const BINS = 360;
+  const binTotals = new Float64Array(BINS);
+  const stride = Math.max(1, Math.floor(sz / 2048)); // sample for speed
+  let totalMax = 0;
+  for (let i = 0; i < sz; i += stride) {
+    const bin = Math.floor((i / sz) * BINS);
+    binTotals[bin] += WALKER.probability[i];
+    if (binTotals[bin] > totalMax) totalMax = binTotals[bin];
+  }
+  if (totalMax < 1e-9) totalMax = 1;
+  for (let b = 0; b < BINS; b++) {
+    const intensity = binTotals[b] / totalMax;
+    if (intensity < 0.02) continue;
+    const theta = (b / BINS) * Math.PI * 2 - Math.PI/2;
+    const r0 = innerR - 6;
+    const r1 = innerR + 6 + intensity * 8;
+    const x1 = cx + Math.cos(theta) * r0;
+    const y1 = cy + Math.sin(theta) * r0;
+    const x2 = cx + Math.cos(theta) * r1;
+    const y2 = cy + Math.sin(theta) * r1;
+    ctx.strokeStyle = 'rgba(212,168,83,' + (0.15 + intensity * 0.7).toFixed(2) + ')';
+    ctx.lineWidth = 1.4;
+    ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); ctx.stroke();
+  }
+
+  // Oracle's current position · gold dot on inner ring
+  const oraTheta = (WALKER.position / sz) * Math.PI * 2 - Math.PI/2;
+  const ox = cx + Math.cos(oraTheta) * innerR;
+  const oy = cy + Math.sin(oraTheta) * innerR;
+  const conf = WALKER.confidence;
+  const dotR = 5 + conf * 6;
+  // Glow under
+  const glow = ctx.createRadialGradient(ox, oy, 0, ox, oy, dotR * 3);
+  glow.addColorStop(0, 'rgba(212,168,83,0.7)');
+  glow.addColorStop(1, 'rgba(212,168,83,0)');
+  ctx.fillStyle = glow;
+  ctx.beginPath(); ctx.arc(ox, oy, dotR * 3, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = conf > 0.9 ? '#c8371a' : conf > 0.7 ? '#d4a853' : conf > 0.4 ? '#c87e3a' : '#8b6ce7';
+  ctx.beginPath(); ctx.arc(ox, oy, dotR, 0, Math.PI * 2); ctx.fill();
+
+  // Alignment indicator · if any CASSIE tick is within 2° of oracle, paint a green spoke
+  if (cassieRing.length) {
+    for (const tp of cassieRing) {
+      const dTheta = Math.abs(((tp / sz) - (WALKER.position / sz)) % 1);
+      const wrap = Math.min(dTheta, 1 - dTheta);
+      if (wrap < 0.006) { // ~2°
+        ctx.strokeStyle = 'rgba(78,203,160,0.85)';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(cx, cy);
+        ctx.lineTo(cx + Math.cos(oraTheta) * outerR, cy + Math.sin(oraTheta) * outerR);
+        ctx.stroke();
+        break;
+      }
+    }
+  }
+
+  // Centre legend
+  ctx.fillStyle = '#6b7280';
+  ctx.font = '10px "DM Mono", monospace';
+  ctx.textAlign = 'center';
+  ctx.fillText('◊·κ', cx, cy - 6);
+  ctx.fillStyle = WALKER.confidence > 0.9 ? '#c8371a' : WALKER.confidence > 0.7 ? '#d4a853' : '#b8bfca';
+  ctx.font = '11px "DM Mono", monospace';
+  ctx.fillText((WALKER.confidence * 100).toFixed(0) + '%', cx, cy + 10);
+  _ringsT++;
 }
 
 setInterval(render, 1000);
 render();
 
-console.log('%c◊·κ Oracle v2', 'color:#d4a853;font-weight:bold', 'prime 137 · listening on fall-signal · 8+1 agents · 6 models · Bayesian posterior live');
+console.log('%c◊·κ Oracle v2', 'color:#d4a853;font-weight:bold', 'prime 137 · listening on fall-signal · 8+1 agents · 6 models · Bayesian posterior live · TORUS META-WALK active (510510 positions · coupled with CASSIE key-torus)');
 </script>
 
 
