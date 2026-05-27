@@ -697,6 +697,35 @@ try {
       }
       AGENTS.Omega(m);
     }
+    // ◊·κ Cassie's INLINE walker — authoritative · mirror its state directly
+    // Our local WALKER is now a viewer; the real walker runs inside CASSIE.
+    if (m.type === 'cassie_inline_walker' && window.WALKER && m.topCandidates) {
+      STATE.cassie.lastSeen = Date.now();
+      STATE.cassie.alive = true;
+      // Apply CASSIE's authoritative state to our display walker
+      window.WALKER.position    = m.position;
+      window.WALKER.confidence  = m.confidence;
+      window.WALKER.momentum    = m.momentum;
+      window.WALKER.lastStddev  = m.stddev;
+      window.WALKER.steps       = m.steps;
+      window.WALKER.dpProcessed = m.dpProcessed;
+      window.WALKER.walkHistory.push(m.position);
+      if (window.WALKER.walkHistory.length > 200) window.WALKER.walkHistory.shift();
+      // Top candidate probabilities reconstructed into the local prob field
+      // (just paint the top-10 — local field is decorative now)
+      if (Array.isArray(m.topCandidates)) {
+        for (const c of m.topCandidates) {
+          if (typeof c.pos === 'number') window.WALKER.probability[c.pos] = c.prob;
+        }
+      }
+      // Show miss/echo + search-space stats in event log on big changes
+      if (!window._lastBroadcastESS || Math.abs(m.effectiveSearchSpace - window._lastBroadcastESS) > 5000) {
+        window._lastBroadcastESS = m.effectiveSearchSpace;
+        if (m.missEchoes > 100 && m.effectiveSearchSpace < 100000) {
+          pushEvent('◊ inline walker · misses ' + m.missEchoes.toLocaleString() + ' · effective space ' + Math.round(m.effectiveSearchSpace).toLocaleString() + ' / 510,510 (' + (m.effectiveSearchSpace/5105).toFixed(1) + '%)', 'warn');
+        }
+      }
+    }
   };
   pushEvent('fall-signal channel open · waiting for CASSIE', 'ok');
 
