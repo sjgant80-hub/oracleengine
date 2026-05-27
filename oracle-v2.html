@@ -504,7 +504,36 @@ class OracleWalker {
     // Read gradient · update momentum · walk
     const gradient = this.readGradient();
     this.momentum  = this.momentum * 0.7 + gradient * 0.3;
-    const jump     = Math.round(this.momentum);
+    let jump       = Math.round(this.momentum);
+
+    // ◊·κ When momentum is weak, walker explores. Two modes:
+    //  (a) Brownian local hop — keeps trace alive in flat regions
+    //  (b) Long-range scout · 30% chance · sample 64 random positions, find peak,
+    //      step a fraction of the way toward it (acts as global attractor without
+    //      collapsing to a teleport-and-stay attractor).
+    if (Math.abs(this.momentum) < 0.5) {
+      if (Math.random() < 0.3) {
+        let bestIdx = -1, bestP = -1;
+        for (let k = 0; k < 64; k++) {
+          const idx = (Math.random() * sz) | 0;
+          const p = this.probability[idx];
+          if (p > bestP) { bestP = p; bestIdx = idx; }
+        }
+        // Step a fraction toward best (1/4 of the wrapped distance, clamped)
+        if (bestIdx >= 0 && bestP > 1e-3) {
+          let diff = bestIdx - this.position;
+          if (diff > sz / 2) diff -= sz;
+          if (diff < -sz / 2) diff += sz;
+          jump += Math.round(diff * 0.25);
+        } else {
+          const explore = Math.max(50, 2000 / Math.max(1, this.steps / 20));
+          jump += Math.round((Math.random() - 0.5) * 2 * explore);
+        }
+      } else {
+        const explore = Math.max(50, 2000 / Math.max(1, this.steps / 20));
+        jump += Math.round((Math.random() - 0.5) * 2 * explore);
+      }
+    }
     this.position  = ((this.position + jump) % sz + sz) % sz;
     this.walkHistory.push(this.position);
     if (this.walkHistory.length > 200) this.walkHistory.shift();
@@ -544,14 +573,16 @@ class OracleWalker {
   }
 
   measureConvergence() {
-    // Stddev of last 100 positions
-    if (this.walkHistory.length < 10) { this.lastStddev = Infinity; return 0.05; }
+    // Stddev of last 100 positions · need a warm-up before any LOCK claim
+    if (this.walkHistory.length < 30) { this.lastStddev = Infinity; return 0.05; }
     const slice = this.walkHistory.slice(-100);
     const mean  = slice.reduce((a, b) => a + b, 0) / slice.length;
     let varSum  = 0;
     for (const p of slice) { const d = p - mean; varSum += d * d; }
     const std = Math.sqrt(varSum / slice.length);
     this.lastStddev = std;
+    // Floor confidence early on (need 100 steps before LOCK is meaningful)
+    if (this.steps < 100 && std < 10) return 0.4;
     if (std < 1)    return 1.0;
     if (std < 10)   return 0.9;
     if (std < 100)  return 0.7;
