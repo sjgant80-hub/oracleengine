@@ -688,13 +688,47 @@ try {
   window.signalChannel.onmessage = function(e) {
     const m = e.data || {};
     if (!m.type) return;
-    if (m.type === 'cassie_update' || m.type === 'cassie_solve' || m.type === 'cassie_hello') {
+    if (m.type === 'cassie_update' || m.type === 'cassie_solve' || m.type === 'cassie_hello' || m.type === 'cassie_heartbeat') {
+      const wasAlive = STATE.cassie.alive;
       STATE.cassie.lastSeen = Date.now();
       STATE.cassie.alive = true;
+      if (!wasAlive && (m.type === 'cassie_hello' || m.type === 'cassie_heartbeat')) {
+        pushEvent('◊ CASSIE linked · tab ' + (m.tab||'').slice(0,8) + ' · puzzle #' + (m.puzzle || '?') + ' · kernel ' + (m.kernel || '?'), 'ok');
+      }
       AGENTS.Omega(m);
     }
   };
   pushEvent('fall-signal channel open · waiting for CASSIE', 'ok');
+
+  // Oracle hello + heartbeat so CASSIE knows we're listening
+  function _sendOracleHello(){
+    try {
+      window.signalChannel.postMessage({
+        type: 'oracle_hello',
+        from: 'oracle-v2',
+        walker: { torusSize: 510510, ready: !!window.WALKER, steps: window.WALKER ? window.WALKER.steps : 0 },
+        ts: Date.now()
+      });
+    } catch(_){}
+  }
+  setTimeout(_sendOracleHello, 300);
+  setTimeout(_sendOracleHello, 1500);
+  window._oracleHeartbeat = setInterval(function(){
+    try {
+      window.signalChannel.postMessage({
+        type: 'oracle_heartbeat',
+        from: 'oracle-v2',
+        walker: window.WALKER ? {
+          position: window.WALKER.position,
+          confidence: window.WALKER.confidence,
+          state: window.WALKER.stateLabel(),
+          steps: window.WALKER.steps,
+          dpProcessed: window.WALKER.dpProcessed
+        } : null,
+        ts: Date.now()
+      });
+    } catch(_){}
+  }, 2000);
 } catch(e) {
   pushEvent('fall-signal unavailable: ' + e.message, 'hot');
 }
