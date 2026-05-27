@@ -253,6 +253,15 @@ footer.bottom a:hover{color:var(--bright)}
       </div>
 
       <div class="card">
+        <h3><span class="glyph">◊</span>Bloom signature · text → [r0..r6]</h3>
+        <div style="font-size:10px;color:var(--dim);font-family:'DM Mono',monospace;margin-bottom:8px">decompose any text into the 7-ring spine · ported from Cassandra via Thomas</div>
+        <input id="bloomInput" type="text" placeholder="type to decompose..." style="width:100%;background:var(--s2);color:var(--bright);border:1px solid var(--border);padding:7px 10px;border-radius:5px;font-size:12px;font-family:'DM Mono',monospace;margin-bottom:10px"/>
+        <div id="bloomBars" style="display:flex;flex-direction:column;gap:3px;font-family:'DM Mono',monospace;font-size:10px"></div>
+        <div id="bloomMeta" style="margin-top:8px;font-size:10px;color:var(--dim);font-family:'DM Mono',monospace"></div>
+        <div id="mcpRoutes" style="margin-top:8px;font-size:10px;color:var(--ok);font-family:'DM Mono',monospace"></div>
+      </div>
+
+      <div class="card">
         <h3><span class="glyph">⇋</span>Estate ripple</h3>
         <div class="agent-row"><div class="gly">●</div><div><div class="nm">FallGo</div><div class="role">CASSIE stone glow</div></div><div></div><div class="stat-mini" id="ripFallGo">—</div></div>
         <div class="agent-row"><div class="gly">◇</div><div><div class="nm">KCC ledger</div><div class="role">R0/R1/R2 contributions</div></div><div></div><div class="stat-mini" id="ripKCC">—</div></div>
@@ -284,6 +293,19 @@ window.NODE = window.NODE || {
 const KAPPA = 0.6180339887498949;
 const PHI = 1.6180339887498949;
 const WITNESS = 0.31736846399216805;
+
+// ◊·κ BLOOM + MCP · cross-pollinated from teslasolar/MissCassandra · MIT
+// Loaded as ES modules so any tool in the estate can import the same shape
+let BLOOM = null, MCP = null;
+(async () => {
+  try {
+    BLOOM = await import('./bloom.mjs');
+    MCP   = await import('./mcp-route.mjs');
+    window.BLOOM = BLOOM;
+    window.MCP   = MCP;
+    console.log('%c◊·κ bloom + mcp', 'color:#4ecba0', 'modules ready · BLOOM.decompose · MCP.pickMCP');
+  } catch(e) { console.warn('bloom/mcp module load failed:', e); }
+})();
 
 // ─── State ─────────────────────────────────────
 const STATE = {
@@ -1009,6 +1031,53 @@ function renderTwoRings() {
 
 setInterval(render, 1000);
 render();
+
+// ◊·κ BLOOM INPUT · live decompose any text · cross-pollination from MissCassandra
+(function wireBloom(){
+  const RING_COLORS = ['#660044','#00AAFF','#FFAA00','#FF4444','#44AA44','#AA44FF','#FFFFFF'];
+  const RING_LABELS = ['R0 ground','R1 sensor','R2 gate','R3 affect','R4 exec','R5 identity','R6 observer'];
+  function renderBloom(text) {
+    if (!BLOOM) return;
+    const r = BLOOM.decompose(text || '');
+    const bars = document.getElementById('bloomBars');
+    const meta = document.getElementById('bloomMeta');
+    const mcp  = document.getElementById('mcpRoutes');
+    if (!bars) return;
+    const max = Math.max(...r.bloom, 1);
+    bars.innerHTML = r.bloom.map((c, i) => {
+      const w = (c / max) * 100;
+      return '<div style="display:grid;grid-template-columns:80px 1fr 30px;gap:6px;align-items:center">' +
+        '<span style="color:' + RING_COLORS[i] + '">' + RING_LABELS[i] + '</span>' +
+        '<div style="height:8px;background:var(--s2);border-radius:3px;overflow:hidden;border:1px solid var(--border)">' +
+          '<div style="height:100%;width:' + w.toFixed(1) + '%;background:' + RING_COLORS[i] + ';transition:width 0.25s"></div>' +
+        '</div>' +
+        '<span style="color:var(--bright);text-align:right">' + c + '</span>' +
+      '</div>';
+    }).join('');
+    meta.textContent = 'dominant: ' + r.dominantLabel + ' · Π=' + r.product.toString().slice(0,32) + (r.product.toString().length > 32 ? '...' : '');
+    // MCP routes for this bloom + text
+    if (MCP) {
+      const routes = MCP.pickMCP(r.normalized, text || '');
+      if (routes.length) {
+        mcp.textContent = '→ ' + routes.length + ' MCP route' + (routes.length>1?'s':'') + ': ' + routes.map(s => s.name).join(' · ');
+      } else {
+        mcp.textContent = 'no MCP routes triggered (need bloom + keyword match)';
+      }
+    }
+  }
+  const input = document.getElementById('bloomInput');
+  if (input) input.addEventListener('input', e => renderBloom(e.target.value));
+  // Demo: decompose the dominant ring of Oracle's current state every 3s
+  setInterval(() => {
+    const inp = document.getElementById('bloomInput');
+    if (inp && !inp.value) {
+      const sample = STATE.resonance.mode + ' ' + (STATE.cassie.alive ? 'cassie live solver running observe walker' : 'waiting for cassie');
+      renderBloom(sample);
+    }
+  }, 3000);
+  // Initial paint
+  setTimeout(() => renderBloom(''), 500);
+})();
 
 console.log('%c◊·κ Oracle v2', 'color:#d4a853;font-weight:bold', 'prime 137 · listening on fall-signal · 8+1 agents · 6 models · Bayesian posterior live · TORUS META-WALK active (510510 positions · coupled with CASSIE key-torus)');
 console.log('%cicu gerald', 'color:#8a8a8a;font-style:italic;font-size:10px');
