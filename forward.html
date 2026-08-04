@@ -1,0 +1,215 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>OracleEngine • forward ◊ hold the future open</title>
+<meta name="description" content="si-didy's future organ. Not a predictor — a branch-holder. Give it a decision or a build and it forks genuinely divergent futures (golden-offset), holds them open, resolves which hold at the κ-gate, and surfaces the branch that opens the most future plus the roads not taken. It never collapses for you." />
+<link rel="manifest" href="./manifest.webmanifest" />
+<meta name="theme-color" content="#080a13" />
+<style>
+  :root{
+    --bg:#080a13; --bg2:#0c1024; --panel:#12162f; --panel2:#191d3d; --line:#242a52;
+    --ink:#e9ebfb; --dim:#969acc; --faint:#666a99;
+    --gold:#e8c06a; --gold-soft:rgba(232,192,106,.13); --violet:#9d8bff; --teal:#5fd6c8; --rose:#f08aa8; --hold:#5fd6c8; --clash:#8b6fc0;
+    --serif:'Iowan Old Style','Palatino Linotype',Palatino,Georgia,serif;
+    --sans:-apple-system,system-ui,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;
+    --mono:ui-monospace,'SF Mono','Cascadia Mono',Menlo,Consolas,monospace;
+    --shadow:0 1px 0 rgba(255,255,255,.02),0 30px 80px rgba(0,0,0,.55);
+  }
+  @media(prefers-color-scheme:light){:root{
+    --bg:#f2f2fb; --bg2:#eae9f9; --panel:#fff; --panel2:#f5f4ff; --line:#e1def0;
+    --ink:#191830; --dim:#59578a; --faint:#8a88b0; --gold:#b0851f; --gold-soft:rgba(176,133,31,.12);
+    --violet:#6b52e0; --teal:#189e90; --rose:#c0568a; --hold:#189e90; --clash:#8a6fd0;
+    --shadow:0 1px 2px rgba(40,30,90,.06),0 20px 60px rgba(50,40,110,.08);
+  }}
+  :root[data-theme="light"]{--bg:#f2f2fb;--bg2:#eae9f9;--panel:#fff;--panel2:#f5f4ff;--line:#e1def0;--ink:#191830;--dim:#59578a;--faint:#8a88b0;--gold:#b0851f;--gold-soft:rgba(176,133,31,.12);--violet:#6b52e0;--teal:#189e90;--rose:#c0568a;--hold:#189e90;--clash:#8a6fd0;--shadow:0 1px 2px rgba(40,30,90,.06),0 20px 60px rgba(50,40,110,.08)}
+  :root[data-theme="dark"]{--bg:#080a13;--bg2:#0c1024;--panel:#12162f;--panel2:#191d3d;--line:#242a52;--ink:#e9ebfb;--dim:#969acc;--faint:#666a99;--gold:#e8c06a;--gold-soft:rgba(232,192,106,.13);--violet:#9d8bff;--teal:#5fd6c8;--rose:#f08aa8;--hold:#5fd6c8;--clash:#8b6fc0;--shadow:0 1px 0 rgba(255,255,255,.02),0 30px 80px rgba(0,0,0,.55)}
+
+  *{box-sizing:border-box} html,body{margin:0}
+  body{background:radial-gradient(130% 90% at 50% -10%, var(--bg2), var(--bg));color:var(--ink);font-family:var(--sans);line-height:1.6;-webkit-font-smoothing:antialiased;min-height:100vh;padding:max(18px,env(safe-area-inset-top)) 18px 60px}
+  .wrap{max-width:760px;margin:0 auto}
+  .sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0)}
+  header{text-align:center;margin:14px 0 4px}
+  h1{font-family:var(--serif);font-size:clamp(30px,7vw,46px);font-weight:500;margin:0}
+  h1 .dot{color:var(--gold)}
+  .lede{color:var(--dim);font-size:15px;max-width:52ch;margin:8px auto 0;font-family:var(--serif);font-style:italic}
+  .guard{background:var(--panel);border:1px solid var(--line);border-left:3px solid var(--gold);border-radius:12px;padding:12px 15px;margin:16px 0;font-size:13px;color:var(--dim)}
+  .guard b{color:var(--ink)}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:18px;box-shadow:var(--shadow);padding:22px 22px;margin-top:16px}
+  .eyebrow{font-family:var(--mono);font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--gold);margin-bottom:8px}
+  textarea{width:100%;min-height:70px;font-family:var(--serif);font-size:18px;line-height:1.5;padding:13px 15px;border-radius:12px;border:1px solid var(--line);background:var(--bg2);color:var(--ink);resize:vertical}
+  textarea:focus{outline:1.5px solid var(--violet);outline-offset:1px}
+  .controls{display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin-top:14px}
+  .controls label{font-size:13px;color:var(--dim);display:flex;gap:8px;align-items:center}
+  input[type=range]{accent-color:var(--gold)}
+  button{font-family:var(--sans);cursor:pointer;transition:.15s;border-radius:12px}
+  button.go{font-size:15px;font-weight:600;color:#080a13;background:linear-gradient(120deg,var(--violet),var(--teal));border:none;padding:12px 20px}
+  button.go:hover{filter:brightness(1.08);transform:translateY(-1px)} button.go:disabled{opacity:.45;cursor:not-allowed;transform:none}
+  button.ghost{background:transparent;border:1px solid var(--line);color:var(--dim);padding:11px 16px;font-size:14px}
+  button.ghost:hover{color:var(--ink);border-color:var(--violet)}
+
+  /* the fork — branches on the golden spiral */
+  .spiral{display:block;margin:6px auto 2px;width:min(300px,70vw);height:auto}
+  .status{text-align:center;font-family:var(--mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--faint);margin:2px 0 14px}
+  .status b{color:var(--teal)}
+  .branch{border:1px solid var(--line);border-radius:14px;padding:14px 16px;margin-bottom:11px;background:var(--panel2);transition:.18s;position:relative;overflow:hidden}
+  .branch.hold{border-color:color-mix(in srgb,var(--hold) 45%,var(--line))}
+  .branch.clash{opacity:.72}
+  .branch.best{border-color:var(--gold);box-shadow:0 0 0 1px var(--gold-soft)}
+  .bh{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
+  .bang{font-family:var(--mono);font-size:10px;color:var(--gold);border:1px solid var(--line);border-radius:6px;padding:2px 6px}
+  .bstance{font-family:var(--serif);font-size:18px}
+  .bscore{margin-left:auto;font-family:var(--mono);font-size:14px}
+  .bscore .verd{font-size:10px;letter-spacing:.1em;text-transform:uppercase;padding:2px 7px;border-radius:6px;margin-left:6px}
+  .verd.hold{background:color-mix(in srgb,var(--hold) 20%,var(--panel));color:var(--hold)}
+  .verd.clash{background:color-mix(in srgb,var(--clash) 18%,var(--panel));color:var(--clash)}
+  .bapproach{font-family:var(--serif);font-size:15px;color:var(--dim);margin:7px 0 10px}
+  .prof{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-bottom:4px}
+  .prof .p{font-size:9px;color:var(--faint);text-align:center;font-family:var(--mono);text-transform:uppercase;letter-spacing:.04em}
+  .prof .bar{height:4px;border-radius:2px;background:var(--line);margin-top:3px;overflow:hidden}
+  .prof .bar>i{display:block;height:100%;background:var(--violet)}
+  .badge{position:absolute;top:0;right:0;font-family:var(--mono);font-size:9px;letter-spacing:.1em;text-transform:uppercase;background:var(--gold);color:#1a1204;padding:3px 9px;border-bottom-left-radius:9px}
+  .choose{margin-top:10px;font-size:13px;color:var(--violet);background:transparent;border:1px solid var(--line);border-radius:999px;padding:6px 14px}
+  .choose:hover{border-color:var(--gold);color:var(--gold)}
+
+  .surfaced{font-family:var(--serif);font-size:15px;color:var(--dim);text-align:center;margin:14px 0 4px}
+  .authored{background:var(--gold-soft);border:1px solid color-mix(in srgb,var(--gold) 40%,var(--line));border-radius:14px;padding:16px 18px;margin-top:12px}
+  .authored .ac{font-family:var(--serif);font-size:20px;margin:4px 0}
+  .authored .an{font-size:13px;color:var(--dim)}
+  .notk{margin-top:12px} .notk .nt{font-size:13px;color:var(--faint);font-family:var(--serif);padding:5px 0;border-bottom:1px dashed var(--line)}
+  .notk .nt:last-child{border-bottom:0}
+
+  .tenses{display:flex;justify-content:center;gap:18px;flex-wrap:wrap;margin-top:8px;font-size:12px;color:var(--faint);font-family:var(--mono)}
+  .tenses b{color:var(--dim)} .tenses .now{color:var(--gold)}
+  footer{text-align:center;color:var(--faint);font-size:12px;margin-top:26px;font-family:var(--serif);font-style:italic}
+  a{color:var(--violet)}
+</style>
+</head>
+<body>
+<h2 class="sr-only">The Oracle is si-didy's future organ: it does not predict. You give it a decision or a build and it forks several genuinely divergent futures spaced by the golden angle, holds them all open at once, walks each forward and scores how well it resolves at the kappa gate, then surfaces the branch that opens the most future along with the roads not taken — which it keeps rather than deletes. It never collapses for you; the choice is always authored by you or by si-didy's verify step.</h2>
+<div class="wrap">
+  <header>
+    <h1>the oracle<span class="dot">◊</span></h1>
+    <div class="lede">Don't predict the future — <em>hold it open</em>. Fork the branches, see which resolve, choose the one that opens the most. The Oracle never chooses for you.</div>
+    <div style="text-align:center;margin-top:10px"><a href="./oracle-v2.html" style="font-family:var(--mono);font-size:12px;color:var(--dim)">◇ the watcher (OracleEngine v2 · present) ↔ forward (future)</a></div>
+    <div class="tenses"><span>remember · <b>past</b></span><span>verify · <b>present</b></span><span class="now">oracle · <b>future</b></span></div>
+  </header>
+
+  <div class="guard"><b>How it works — and what it won't do.</b> It holds possibility and shows what resolves; it does <b>not decide</b>. An oracle that auto-collapses is just a predictor again — brittle, usually wrong. The value is keeping the future open until a <b>deliberate</b> collapse, authored by you. Hold, don't decide.</div>
+
+  <!-- ASK -->
+  <section class="card" id="ask">
+    <div class="eyebrow">The decision, or the build</div>
+    <textarea id="decision" placeholder="e.g. how should we launch the pricing page · which architecture for the sync layer · should I take the contract" autofocus></textarea>
+    <div class="controls">
+      <label>futures <input type="range" id="nBranch" min="3" max="8" value="5"><span id="nVal" style="font-family:var(--mono)">5</span></label>
+      <button class="go" id="forkBtn" disabled>◊ Fork the futures</button>
+    </div>
+  </section>
+
+  <!-- FORK / RESOLVE -->
+  <section class="card" id="futures" style="display:none">
+    <div class="eyebrow" id="futuresLabel">The futures — held open</div>
+    <svg class="spiral" id="spiral" viewBox="0 0 200 200" aria-hidden="true"></svg>
+    <div class="status" id="status"></div>
+    <div id="branches"></div>
+    <div class="controls" style="justify-content:space-between">
+      <button class="ghost" id="reforkBtn">← new decision</button>
+      <button class="go" id="resolveBtn">Walk them → see what holds</button>
+    </div>
+  </section>
+
+  <!-- SURFACE + AUTHOR -->
+  <section class="card" id="chosen" style="display:none">
+    <div class="eyebrow">You author the collapse</div>
+    <div class="surfaced" id="surfacedNote"></div>
+    <div id="authoredBox"></div>
+  </section>
+
+  <!-- JOURNAL of authored decisions -->
+  <section class="card" id="journalView" style="display:none">
+    <div class="eyebrow">Decisions held — and the roads not taken (kept)</div>
+    <div id="journal"></div>
+  </section>
+
+  <footer>The Oracle holds the future open — REMEMBER holds the past, VERIFY holds the present, and si-didy watches all three at once. ◊·κ</footer>
+</div>
+
+<script type="module">
+import O from './oracle.mjs?v=1';
+const $ = s => document.querySelector(s);
+const KEY = 'the-oracle-v1';
+let branches = [], resolved = null, surfaced = null, decision = '';
+let journal = load(); function load(){ try{ return JSON.parse(localStorage.getItem(KEY)||'[]')||[]; }catch{ return []; } }
+function save(){ try{ localStorage.setItem(KEY, JSON.stringify(journal.slice(0,40))); }catch(e){} }
+const esc = s => String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const pct = x => Math.round(x*100);
+
+$('#decision').addEventListener('input', e=>{ decision=e.target.value.trim(); $('#forkBtn').disabled=!decision; });
+$('#nBranch').addEventListener('input', e=>$('#nVal').textContent=e.target.value);
+
+$('#forkBtn').onclick=()=>{ branches=O.fork(decision, +$('#nBranch').value); resolved=null; surfaced=null;
+  drawSpiral(branches, false); $('#status').innerHTML='held open · the dream — none chosen yet'; renderBranches();
+  $('#futuresLabel').textContent='The futures — held open'; $('#futures').style.display=''; $('#chosen').style.display='none'; $('#journalView').style.display='none';
+  $('#futures').scrollIntoView({behavior:'smooth',block:'start'}); };
+$('#reforkBtn').onclick=()=>{ $('#futures').style.display='none'; $('#chosen').style.display='none'; $('#decision').focus(); };
+
+function drawSpiral(bs, scored){ const R=100, cx=100, cy=100; let g='';
+  g+=`<circle cx="${cx}" cy="${cy}" r="90" fill="none" stroke="var(--line)" stroke-width="1"/>`;
+  bs.forEach((b,k)=>{ const rad=28+(scored?(b.score):(Math.sqrt(k+0.5)/Math.sqrt(bs.length)))*58; const a=b.angle*Math.PI/180;
+    const x=cx+rad*Math.cos(a), y=cy+rad*Math.sin(a);
+    const col = !scored? 'var(--violet)' : b.holds? 'var(--hold)':'var(--clash)';
+    g+=`<line x1="${cx}" y1="${cy}" x2="${x}" y2="${y}" stroke="${col}" stroke-width="1" opacity=".4"/>`;
+    g+=`<circle cx="${x}" cy="${y}" r="${scored&&b===bs[0]&&b.holds?6:4}" fill="${col}"/>`; });
+  g+=`<circle cx="${cx}" cy="${cy}" r="3" fill="var(--gold)"/>`;
+  $('#spiral').innerHTML=g; }
+
+function renderBranches(){ const list = resolved || branches;
+  $('#branches').innerHTML = list.map((b,rank)=>{
+    const scored = b.score!=null;
+    const cls = scored? (b.holds?'hold':'clash'):''; const best = scored && rank===0 && b.holds;
+    const prof = ['novelty','risk','cost','horizon','reversibility'].map(d=>`<div class="p">${d.slice(0,4)}<div class="bar"><i style="width:${pct(b.profile[d])}%"></i></div></div>`).join('');
+    return `<div class="branch ${cls} ${best?'best':''}">
+      ${best?'<div class="badge">opens the most future</div>':''}
+      <div class="bh"><span class="bang">${Math.round(b.angle)}°</span><span class="bstance">${esc(b.stance)}</span>
+        ${scored?`<span class="bscore">${b.score.toFixed(2)}<span class="verd ${b.holds?'hold':'clash'}">${b.holds?'holds':'clash'}</span></span>`:''}</div>
+      <div class="bapproach">${esc(b.approach)}</div>
+      <div class="prof">${prof}</div>
+      ${scored?`<button class="choose" data-id="${b.id}">I choose this →</button>`:''}
+    </div>`; }).join('');
+}
+$('#resolveBtn').onclick=()=>{ resolved=O.resolve(branches); surfaced=O.surface(resolved);
+  drawSpiral(resolved, true);
+  const nh=surfaced.holds.length;
+  $('#status').innerHTML = nh? `<b>${nh}</b> of ${resolved.length} futures hold at the κ-gate · the rest are roads not taken (kept)` : `none hold this run — the Oracle won\'t force one`;
+  $('#futuresLabel').textContent='The futures — walked & resolved (κ-gate)';
+  renderBranches(); };
+
+$('#branches').addEventListener('click', e=>{ const c=e.target.closest('[data-id]'); if(!c || !surfaced) return; authorCollapse(c.dataset.id); });
+function authorCollapse(id){
+  const by = prompt("Who is authoring this collapse?  (the Oracle never decides — this is your call, or VERIFY's)", 'me');
+  if(by===null) return;
+  const a = O.author(surfaced, id, by); if(!a.ok){ alert(a.why); return; }
+  const edges = O.toRemember(decision, a);
+  journal.unshift({ decision, chosen:a.chosen.approach, chosenStance:a.chosen.stance, score:a.chosen.score, by:a.authoredBy, notTaken:a.notTaken.map(b=>({stance:b.stance, approach:b.approach, score:b.score})), ts:Date.now() });
+  save();
+  $('#surfacedNote').innerHTML = `The event of choosing is yours. This one is carried; the others are kept.`;
+  $('#authoredBox').innerHTML = `<div class="authored"><div class="an">${esc(a.chosen.stance)} · authored by <b>${esc(a.authoredBy)}</b> · score ${a.chosen.score.toFixed(2)}</div><div class="ac">“${esc(a.chosen.approach)}”</div></div>
+    <div class="notk"><div class="an" style="margin:12px 0 4px;color:var(--faint)">roads not taken — kept, remembered, revisitable:</div>${a.notTaken.map(b=>`<div class="nt">${esc(b.stance)} · “${esc(b.approach)}” <span style="color:var(--faint);font-family:var(--mono);font-size:11px">· ${b.score.toFixed(2)}</span></div>`).join('')}</div>
+    <div class="controls" style="justify-content:center;margin-top:16px"><button class="ghost" id="anotherBtn">Hold another future open</button> <button class="ghost" id="seeJournal">See held decisions →</button></div>`;
+  $('#chosen').style.display=''; $('#chosen').scrollIntoView({behavior:'smooth',block:'start'});
+  $('#anotherBtn').onclick=()=>{ $('#chosen').style.display='none'; $('#futures').style.display='none'; $('#decision').value=''; decision=''; $('#forkBtn').disabled=true; $('#decision').focus(); };
+  $('#seeJournal').onclick=renderJournal;
+}
+function renderJournal(){ $('#journalView').style.display='';
+  $('#journal').innerHTML = journal.length? journal.map(j=>`<div class="branch" style="background:var(--panel)"><div class="bh"><span class="bstance">${esc(j.decision)}</span><span class="bscore" style="font-size:12px;color:var(--dim)">${new Date(j.ts).toLocaleDateString()}</span></div>
+    <div class="bapproach" style="color:var(--ink)">◊ carried: <b>${esc(j.chosen)}</b> <span style="color:var(--faint);font-family:var(--mono);font-size:11px">· by ${esc(j.by)} · ${(+j.score).toFixed(2)}</span></div>
+    ${j.notTaken.length?`<div style="font-size:12px;color:var(--faint)">roads not taken: ${j.notTaken.map(n=>esc(n.stance)).join(' · ')}</div>`:''}</div>`).join('') : '<div class="surfaced">No decisions held yet.</div>';
+  $('#journalView').scrollIntoView({behavior:'smooth',block:'start'}); }
+
+if(journal.length){ /* keep it quiet until asked */ }
+if('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js').catch(()=>{});
+</script>
+</body>
+</html>
